@@ -18,7 +18,7 @@ except:
     H5_OFF = True
     
 # Helpers and global default values
-NOT_A_VALUE_ = "-"
+__NOT_A_VALUE__ = "-"
     
 class Table:
 
@@ -376,12 +376,12 @@ class Table:
         self._setMaxRows()
         for k, c in self.cols.items():
             missing = self.max_rows - len(c)
-            c.addMissingValues(missing, mark = _NOT_A_VALUE_)
+            c.addMissingValues(missing, mark = __NOT_A_VALUE__)
 
     def removeMissingValues(self):
-        ''' Removes elements that are equal to the string _NOT_A_VALUE_ '''
+        ''' Removes elements that are equal to the string ___NOT_A_VALUE__ '''
         for k, c in self.cols.items():
-            c.removeMissingValues(mark = _NOT_A_VALUE_)
+            c.removeMissingValues(mark = __NOT_A_VALUE__)
 
     def summary(self, out = sys.stdout, wait = False):
         """ Prints a brief summary of this table including name and information about 

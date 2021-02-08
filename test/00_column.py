@@ -1,5 +1,5 @@
-import sys
-sys.path.append(r"Z:\Documents\ProjectSWM\tmp4_pytable\PyTable\tmp\Lib\site-packages")
+#import sys
+#sys.path.append(r"Z:\Documents\ProjectSWM\tmp4_pytable\PyTable\tmp\Lib\site-packages")
 
 import unittest
 from tbl.column import Column

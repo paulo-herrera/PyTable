@@ -1,11 +1,11 @@
 from datetime import datetime, date
 
 class Types:
-    FMT_DATE = "%d/%m/%Y"
+    FMT_DATE  = "%d/%m/%Y"
     FMT_FLOAT = "%6.2f"
     ALLOWED_TYPES = ["i", "f", "d", "s"]
-    MAX_STRING_LEN_NUMPY = 100 # IF CHANGED UPDATE BELOW TOO.
-    MAX_STRING_DATE_LEN_NUMPY = 20 # IF CHANGED UPDATE BELOW TOO.
+    MAX_STRING_LEN_NUMPY = 100             # IF CHANGED UPDATE BELOW TOO.
+    MAX_STRING_DATE_LEN_NUMPY = 20         # IF CHANGED UPDATE BELOW TOO.
     NUMPY_MAP = { "i" : "i8", "f" : "f8", "s" : "S100", "d" : "S20"}
     
     @staticmethod

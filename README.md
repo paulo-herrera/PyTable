@@ -42,6 +42,7 @@ source tree provide enough information to start using the package.
 # REQUIREMENTS
 
     - Python 3 (tested with Python 3.7)
+    - h5Py, only required to export to/and import from HDF5 files  [OPTIONAL]
 
 # DEVELOPMENT
 
@@ -71,7 +72,7 @@ this, while in the root directory, one can type:
 	2. set PYTHONPATH=%ROOT_DIR%/tmp/lib/site-packages/;%PYTHONPATH%             (WINDOWS)
 
 NOTE: you may have to change the Python version depending of the installed
-version on your system.
+version on your system. 
 
 To test the package one can run some of the examples, e.g.:
 ./tmp/lib/python2.7/site-packages/pytable/examples/XXXX.py
@@ -80,6 +81,11 @@ That should create a XXXX.csv file in the current directory.
 
 An alternative is creating a virtual environment as explained here:
 https://docs.python.org/3/tutorial/venv.html
+
+To generate distribution files (tar.gz and .whl files) in build directory:
+
+1. python setup.py sdist
+2. python setup.py bdist_wheel
 
 ## CONTRIBUTE:
 

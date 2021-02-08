@@ -1,5 +1,5 @@
-import sys
-sys.path.append(r"Z:\Documents\ProjectSWM\tmp4_pytable\PyTable\tmp\Lib\site-packages")
+#import sys
+#sys.path.append(r"Z:\Documents\ProjectSWM\tmp4_pytable\PyTable\tmp\Lib\site-packages")
 
 import unittest
 from tbl.table import Table
@@ -213,7 +213,7 @@ class TestTable(unittest.TestCase):
     
 def touchit():
     r = [(",", "."), (";", ",")]
-    src = "./test/data/touchme.txt"
+    src = "data/touchme.txt"
     Table.touchit(src, r, dst="touchme_new.txt")
     
     
