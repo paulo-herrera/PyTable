@@ -51,6 +51,8 @@ def getTypeConverter(old: str, new: str, fmt: str = None):
     
     if old == "i" and new == "s":
         return str, None
+    elif old == "f" and new == "i":
+        return int, None
     elif old == "f" and new == "s":
         fmt_float = fmt if fmt else "%g"
         return lambda f: fmt_float%(f), fmt_float
@@ -61,7 +63,7 @@ def getTypeConverter(old: str, new: str, fmt: str = None):
     elif old == "s" and new == "s":
         assert False, "Converting to same type %s"%(old) # it could be possible, but a waste of CPU
     else:
-        assert False, "Converting betweem %s and %s is not supported"%(old, new)
+        assert False, "Converting between %s and %s is not supported"%(old, new)
         
 
 def isDateStr(sstr: str, fmt: str) -> bool:
