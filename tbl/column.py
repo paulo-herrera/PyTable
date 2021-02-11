@@ -1,15 +1,10 @@
 __docformat__ = "google"
 
-from .ttypes import getType, isTypeStr, getTypeConverter
+from .ttypes import getType, isTypeStr, getTypeConverter, NUMPY_TYPE
 from .helpers import is_iterable
+from .required import NUMPY_ON
 import sys
 import inspect
-
-try:
-    import numpy as np
-    NUMPY_OFF = False
-except:
-    NUMPY_OFF = True    
 
 class Column:
     """ General container to store data as column of a table. 
@@ -30,6 +25,7 @@ class Column:
         self.type: str = None                    # 1 character that indicates type of this column.
         self.fmt: str  = None                    # used to convert dates and float to strings. 
         self.desc: str = desc if desc else None  # description of this column
+        self.tostr = None                        # converter to string
     
     def setName(self, name: str):
         """ Sets name of this column.
@@ -37,6 +33,22 @@ class Column:
         """
         self.name = name
         return self
+    
+    def setFormatStr(self, fmt: str):
+        """ Sets format used to print or convert elements in this column to strings.
+            Returns:
+                This column.
+        """
+        assert self.type, "Format cannot be assigned before assigning type for this column."
+        self.tostr, self.fmt = getTypeConverter(self.type, "s", fmt)
+        return self
+    
+    def format(self, idx: int):
+        """ Returns a formatted string of element c[idx] in this column.
+            Format used to make conversion should have been set calling setFormatStr. 
+        """
+        s = self.tostr(self.data[idx])
+        return s
     
     def setDescription(self, desc: str):
         """ Sets description of this column.
@@ -62,11 +74,15 @@ class Column:
             
             Returns:
                 This column.
+            
+            NOTE: Only use this function to append list of many elements. To add 
+                  only one element use append instead.
         """
         assert is_iterable(data), "To add individual elements, use append"
         
         if not self.type and len(data) > 0:
             self.type = getType(data[0])
+            self.tostr, self.fmt = getTypeConverter(self.type, "s", self.fmt)
         elif self.type and len(data) > 0:           # have to check if types match
             ntype = getType(data[0])
             assert(ntype == self.type)
@@ -74,6 +90,7 @@ class Column:
             ntype = getType(ctype)
             self.type = ntype
             self.data = data
+            self.tostr, self.fmt = getTypeConverter(ntype, "s", self.fmt)
         else:
             assert False
         
@@ -94,11 +111,10 @@ class Column:
         self.data.append(e)
         return self
         
-    def convert(self, old: str, new: str = None, fmt = None):
-        """ Converts column data type from old to new type.
+    def convert(self, new: str = None, fmt: str = None):
+        """ Converts column data type from current type to new type.
         
             Args:
-                old: old type as a one character string (see ttypes.ALLOWED_TYPES). 
                 new: new type as a one character string (see ttypes.ALLOWED_TYPES).
                      Optional only if old type is string "s" (automatic conversion of strings). 
                 fmt: format used to convert dates and floats to strings.
@@ -107,24 +123,29 @@ class Column:
             Returns:
                 This column.
         """
-        assert isTypeStr(old), old
-        assert isTypeStr(new), new 
+        assert isTypeStr(new), new
         
         self.fmt = fmt if fmt else self.fmt
         
+        old = self.type
         if old == "s" and not new:
             assert len(self.data) > 0
             d0 = self.data[0]
             new = getTypeStr(d0, self.fmt)
             
         f, fmt = getTypeConverter(old, new, self.fmt)
-        dd = [f(nd) for nd in self.data]                
+        dd = []
+        for nd in self.data:
+            print(str(nd))
+            a = f(nd)
+            dd.append(a)
+            
         self.data = dd
         self.type = new
         
         return self
-        
-    def index(self, filter):
+    
+    def indexes(self, filter):
         """ Return a list of indexes of the elements of the column that satisfy:
                 filter(i, c[i]) = True
         """
@@ -133,7 +154,27 @@ class Column:
             v = self.data[i]
             if filter(i, v): idx.append(i)
         return idx
-
+    
+    def at(self, idxs):
+        """ Given a list of indexes of elements in this columns, creates a new column.
+            
+            Args:
+                idxs: list or tuple with indexes of elements in this column that
+                should be in new column, e.g. list returned by indexes.
+                
+            Returns:
+                A new column with elements specified by idxs.
+        """
+        assert is_iterable(idxs)
+        ndata = []
+        for idx in idxs:
+            nd = self.data[idx]
+            ndata.append(nd)
+        
+        c = Column(name = self.name + "[idxs]")
+        c.addData(ndata)
+        return c
+        
     def collect(self, filter):
         """ Returns a list of the elements (c[i]) of this column that satisfy:
                filter(i, c[i]) = True
@@ -149,7 +190,7 @@ class Column:
             if (filter(i, v)): values.append(v)
         return values
 
-    def column(self, filter, name = None, desc = None):
+    def select(self, filter, name = None, desc = None):
         """ Creates a new column taking only the elements of this column that satisfy:
                 filter(i, c[i]) = True
             
@@ -164,7 +205,7 @@ class Column:
                 A new column with selected elements of this column.
         """
         nd = self.collect(filter)
-        if not name: name = "sample(" + self.name + ")" 
+        if not name: name = "select(" + self.name + ")" 
         if not desc: desc = inspect.getsource(filter)
             
         c = Column(name).addData(nd).setDescription(desc.strip())
@@ -189,7 +230,7 @@ class Column:
     def clone(self):
         """ Returns an exact copy that does not shared data with this column (deep-copy)
         """    
-        c = Column(self.name, self.pos)
+        c = Column(self.name)
         c.addData(self.data.copy())
         return c
 
@@ -248,13 +289,19 @@ class Column:
             result = func(i, e, result)
         return result
 
-    def write(self, out = sys.stdout, sep = "\n", fmt = None, writeName = False):
+    def print(self, out = sys.stdout, sep = "\n", fmt = None, writeName = False, start = 0, end = None):
         """ Write elements of column to out.
         
             Args:
                 out: a stream like object, e.g. sys.stdout.
                 sep: a string used as separator of elements.
+                fmt: string that defines format to be used to convert values to strings 
+                     [OPTIONAL, USED FOR FLOATS AND DATES].
                 writeName: if True, then write name of this column before writing elements.
+                start: index of first element that should be printed 
+                       [OPTIONAL, DEFAULT = 0]
+                end: index of last element that should be printed 
+                     [OPTIONAL, DEFAULT=NONE, last element]
         """
         self.fmt = fmt if fmt else self.fmt
         
@@ -262,12 +309,67 @@ class Column:
             out.write(self.name)
             out.write(sep)
         
+        end = end + 1 if end else len(self.data)
+        
         c, fmt = getTypeConverter(self.type, "s", self.fmt)
-        for e in self.data:
+        for i in range(start, end):
+            e = self.data[i]
             s = c(e)
             out.write(s)
             out.write(sep)
     
+    def head(self, n, out = sys.stdout, sep = "\n", fmt = None, writeName = False, ):
+        """ Prints first n elements of this column.
+            
+            Args:
+                out: a stream like object, e.g. sys.stdout.
+                sep: a string used as separator of elements.
+                writeName: if True, then write name of this column before writing elements.
+                start: index of first element that should be printed [OPTIONAL, DEFAULT = 0]
+                end: index of last element that should be printed [OPTIONAL, DEFAULT=NONE, last element]
+        """
+        self.print(out, sep, fmt, writeName, start = 0, end = n - 1) # we add 1 later
+    
+    def tail(self, n, out = sys.stdout, sep = "\n", fmt = None, writeName = False, ):
+        """ Prints last n elements of this column.
+            
+            Args:
+                out: a stream like object, e.g. sys.stdout.
+                sep: a string used as separator of elements.
+                writeName: if True, then write name of this column before writing elements.
+                start: index of first element that should be printed [OPTIONAL, DEFAULT = 0]
+                end: index of last element that should be printed [OPTIONAL, DEFAULT=NONE, last element]
+        """
+        end = len(self)
+        start = end - n
+        self.print(out, sep, fmt, writeName, start = start, end = end - 1) # we add 1 later
+    
+    def np(self):
+        """ Returns a Numpy array that contains data in this column.
+            
+            Returns: 
+                A 1D Numpy array with data in this column. If Numpy is not installed,
+                then throws an error.
+                
+            NOTE: Data is not shared with the array, so changes made to the array are
+                 not applied to this column and vice versa.
+                 String length is restricted to ttypes.MAX_STRING_LEN_NUMPY (=100)
+        """
+        assert NUMPY_ON, "Numpy is not installed."
+        assert self.type != "d", "Not implemented for dates"
+        import numpy as np
+        
+        nptype = NUMPY_TYPE[self.type]
+        a = np.array(self.data, dtype = nptype)
+        return a
+    
+    def isBlank(self):
+        """ Returns true if all elements in this column are blank or empty strings.
+        """
+        assert self.type == "s"
+        ns = self.reduce(func = lambda i, e, result: len(e.strip()) + result, result = 0)
+        return ns == 0
+        
     def __str__(self):
         s = "Col[%12s]: \t %4s< \t %8d"%(self.name, self.type, len(self.data) )
         return s

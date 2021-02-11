@@ -8,13 +8,10 @@ __docformat__ = "google"
 from typing import TypeVar, Generic
 from datetime import datetime, date
 
-__T = TypeVar('T')  # Only used for annotation
-
-
 ALLOWED_TYPES = ['i', 'f', 'd', 's']   # int, float, datetime, string
 MAX_STRING_LEN_NUMPY = 100             # IF CHANGED UPDATE BELOW TOO FOR s AND d
 MAX_STRING_DATE_LEN_NUMPY = 20         # IF CHANGED UPDATE BELOW TOO FOR s AND d
-NUMPY_MAP = { 'i' : 'i8', 'f' : 'f8', 's' : 'S100', 'd' : 'S20'}
+NUMPY_TYPE = { 'i' : 'i8', 'f' : 'f8', 's' : 'S100', 'd' : 'S20'}
     
 def isTypeStr(stype: str) -> bool:
     """ Returns True if string stype represents one of the allowed types.
@@ -43,25 +40,28 @@ def getTypeConverter(old: str, new: str, fmt: str = None):
         elif new == "f":
             return float, None #Test if this works. 
         elif new == "d":
-            assert fmt, "Missing format to convet to date"
+            assert fmt, "Missing format to convert to date"
             fmt_date = fmt
             return lambda sstr: datetime.strptime(sstr, fmt_date), fmt_date
-        else: 
-            return str, None
+        elif new == "s": 
+            fmt_str = fmt if fmt else "%s" # useful to print strings with some specific format
+            return lambda f: fmt_str%(f), fmt_str
+        
+    elif old == "i" and new == "s":
+        fmt_int = fmt if fmt else "%d"
+        return lambda f: fmt_int%(f), fmt_int
     
-    if old == "i" and new == "s":
-        return str, None
     elif old == "f" and new == "i":
         return int, None
+    
     elif old == "f" and new == "s":
         fmt_float = fmt if fmt else "%g"
         return lambda f: fmt_float%(f), fmt_float
+    
     elif old == "d" and new == "s":
         assert fmt, "Missing format to convert to string"
         fmt_date = fmt
         return lambda x: datetime.strftime(x, fmt_date), fmt_date
-    elif old == "s" and new == "s":
-        assert False, "Converting to same type %s"%(old) # it could be possible, but a waste of CPU
     else:
         assert False, "Converting between %s and %s is not supported"%(old, new)
         
@@ -161,7 +161,7 @@ def getH5TypeStr(stype: str) -> str:
         NOTE: Dates are saved as strings.
     """
     assert (stype in ALLOWED_TYPES)
-    return NUMPY_MAP[stype]
+    return NUMPY_TYPE[stype]
     
 if __name__ == "__main__":
     pass
