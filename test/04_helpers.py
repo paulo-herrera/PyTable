@@ -1,5 +1,7 @@
-from tbl.helpers import split_line, is_iterable, walker, break_date, touchit, read_tab_file, timeit
+from tbl.helpers import split_line, is_iterable, walker, break_date, touchit, \
+                        read_tab_file, timeit, elapsed_time, datetime_list
 import os
+import datetime
 
 def test00_split_line():
     line = "  hello, world!"
@@ -77,12 +79,14 @@ def test05_read_tab_file():
     
     src = "data/dates1.csv"
    
-    vals = read_tab_file(src, sep=",", strip = True, verbose=True)
+    vals, skipped = read_tab_file(src, sep=",", strip = True, verbose=True)
     assert len(vals) == 4
     assert len(vals[0]) == 2
 
     src = "data/dates3.csv"
-    vals = read_tab_file(src, sep=",", strip = True, verbose=True)
+    vals,skipped = read_tab_file(src, sep=",", strip = True, verbose=True, skip=1)
+    print(skipped[0])
+    assert(len(skipped) == 1)
     assert len(vals) == 4
     assert len(vals[0]) == 4
     for v in vals[1]: print (v)
@@ -113,11 +117,45 @@ def test06_read_tab_file2():
     
     print("File size: %g [MB]   Elapsed time: %g [sec]"%(mbytes, t))
     print("Reading speed: %g [MB/sec]"%(mbytes/t))
+
+def test07_elapsed_time():
+    TOL = 1.e-16
+    dates = []
+    for i in range(10):
+        d = datetime.datetime(year = 1970, month=1, day=i + 1)
+        d.replace(minute=00, hour=00, second=00)
+        dates.append(d)
     
-def testit(t):
+    telap = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True)
+    assert abs((telap[1] - telap[0]) - 1.0) < TOL
+    assert abs((telap[2] - telap[1]) - 1.0) < TOL
+    
+    dates = []
+    for i in range(10):
+        d = datetime.datetime(year = 1970, month = i + 1, day=1)
+        d.replace(minute=15 + i, hour=00, second=00)
+        dates.append(d)
+        
+    telap = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True)
+    assert abs((telap[1] - telap[0]) - 31.0) < TOL
+    assert abs((telap[2] - telap[1]) - 28.0) < TOL
+    
+    for t in telap: print("%d [days]"%(t))
+    
+    d0 = datetime.datetime(year = 1970, month=1, day=1).replace(hour=00, minute=5,second=00)
+    d1 = datetime.datetime(year = 1970, month=1, day=2).replace(hour=00, minute=15,second=00)
+    dates = [d0, d1]
+    telap = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True, verbose2=True)
+    
+    
+def test08_datetime_list():
+    ds = datetime_list(year0=1980, year1=1990, monthly=True, verbose=True)
+ 
+def testit(t, wait = False):
     #try:
         t()
         print("PASSED>> " + t.__name__)
+        if wait: input("PRESS ENTER...")
     #except:
     #    print("FAILED>> " + t.__name__)   
    
@@ -129,3 +167,5 @@ if __name__ == '__main__':
     testit(test04_touchit)
     testit(test05_read_tab_file)
     testit(test06_read_tab_file2)
+    testit(test07_elapsed_time, wait=True)
+    testit(test08_datetime_list, wait=True)

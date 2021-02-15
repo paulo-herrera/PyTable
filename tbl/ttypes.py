@@ -11,12 +11,14 @@ from datetime import datetime, date
 ALLOWED_TYPES = ['i', 'f', 'd', 's']   # int, float, datetime, string
 MAX_STRING_LEN_NUMPY = 100             # IF CHANGED UPDATE BELOW TOO FOR s AND d
 MAX_STRING_DATE_LEN_NUMPY = 20         # IF CHANGED UPDATE BELOW TOO FOR s AND d
-NUMPY_TYPE = { 'i' : 'i8', 'f' : 'f8', 's' : 'S100', 'd' : 'S20'}
-    
+NUMPY_TYPE = { 'i' : 'i8', 'f' : 'f8', 's' : 'S100', 'd' : 'S19'}
+
+
 def isTypeStr(stype: str) -> bool:
     """ Returns True if string stype represents one of the allowed types.
     """
     return stype in ALLOWED_TYPES
+    
     
 def getTypeConverter(old: str, new: str, fmt: str = None):
     """ Returns a function used to convert data from old type to new type. 
@@ -36,14 +38,18 @@ def getTypeConverter(old: str, new: str, fmt: str = None):
     
     if old == "s":
         if new == "i": 
+            #print(">>>>i")   # DEBUG
             return int, None
         elif new == "f":
+            #print(">>>>f")   # DEBUG
             return float, None #Test if this works. 
         elif new == "d":
+            #print(">>>>d")   # DEBUG
             assert fmt, "Missing format to convert to date"
             fmt_date = fmt
             return lambda sstr: datetime.strptime(sstr, fmt_date), fmt_date
-        elif new == "s": 
+        elif new == "s":
+            #print(">>>>s")   # DEBUG
             fmt_str = fmt if fmt else "%s" # useful to print strings with some specific format
             return lambda f: fmt_str%(f), fmt_str
         
@@ -156,12 +162,14 @@ def getH5TypeStr(stype: str) -> str:
         returns the corresponding type that is used to store data in HDF5 files.
         
         Args:
-            stype: string, e.g. "i", "f" or "d".
+            stype: string, e.g. "i", "f", "d" or "s".
             
         NOTE: Dates are saved as strings.
     """
     assert (stype in ALLOWED_TYPES)
-    return NUMPY_TYPE[stype]
+    htype = NUMPY_TYPE[stype]
+    print("%s >>>>>>>> %s: %s"%("getH5TypeStr", stype, htype))   # DEBUG
+    return htype
     
 if __name__ == "__main__":
     pass

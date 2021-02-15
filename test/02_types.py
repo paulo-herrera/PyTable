@@ -26,6 +26,7 @@ def test00_isTypeStr():
     assert not it, it
     
 def test01_getTypeConverter():
+    
     # from string
     c, fmt = getTypeConverter("s", "i")
     v = c("0")
@@ -43,6 +44,10 @@ def test01_getTypeConverter():
     assert v == d, str(v)
     assert fmt == "%d/%m/%Y %H:%M:%S"
     
+    c, fmt = getTypeConverter("s", "s", fmt = ">>%s<<")
+    v = c("a")
+    assert v == ">>a<<"
+     
     # to string
     c, fmt = getTypeConverter("i", "s")
     v = c(2)
@@ -52,10 +57,17 @@ def test01_getTypeConverter():
     v = c(2.0)
     assert v == "2.00"
     
+    d = datetime(2000,5,2,13,00,00,00)
     c, fmt = getTypeConverter("d", "s", "%d/%m/%Y %H:%M:%S")
     v = c(d)
     assert v == "02/05/2000 13:00:00"
     assert fmt == "%d/%m/%Y %H:%M:%S"
+    
+    # from int to float
+    c, fmt = getTypeConverter("i", "f")
+    v = c(2)
+    isintance(v, float)
+    assert v == 2.0
     
 def test02_getType():
     ft = getType(1.0)
@@ -102,7 +114,7 @@ def test05_getH5TypeStr():
     assert it == "f8", it
     
     dt = getH5TypeStr("d")
-    assert dt == "S20", dt
+    assert dt == "S19", dt
     
     st = getH5TypeStr("s")
     assert st == "S100", st

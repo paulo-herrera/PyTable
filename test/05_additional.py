@@ -1,38 +1,49 @@
-from tbl.table import Table
+""" Random collection of scripts that show different ways to accomplish some 
+    common tasks.
+"""
 
-def test0_convert():
-    t = Table("t0")
-    t.addCol("time", ["0.0", "0.1", "0.2", "0.3"])
-    t.addCol("pressure", ["0.1", "1.2", "0.3", "2.5", "0.8"])
-    t.addCol("pressure2", ["0.1", "1.2", "0.3", "2.5", "0.8"])
-    t.addCol("dates", ["01/01/1973", "01/03/2000", "01/06/2010", "01/12/1998", "11/09/2001"])
 
-    t.display()
-    
-    t.summary()
-    t.convert(t.all(), ["f", "f", "f", "d"], fmt_date = "%d/%m/%Y")
-    t.summary()
-    
-    t.display()
 
-def test1_h5():
-    fpath = "test5_h5.h5"
+def create_date_elap_time_list():
+    from tbl.helpers import datetime_list, elapsed_time
     
-    t = Table("t0")
-    t.addCol("time", [0.0, 0.1, 0.2, 0.3])
-    t.addCol("pressure", [1, 2, 3, 4, 5])
-    t.addCol("pressure2", ["0.1", "1.2", "0.3", "2.5", "0.8"])
-    t.addCol("dates", ["01/01/1973", "01/03/2000", "01/06/2010", "01/12/1998", "11/09/2001"])
-    t.summary()
-     
-    t.convert([3], ["d"], fmt_date = "%d/%m/%Y")
+    dates = datetime_list(year0 = 1970, year1 = 2023, monthly=True, verbose=False)
+    telap = elapsed_time(dates, start="01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True, verbose2=True)
+
+def read_save_table():
+    from tbl.table import Table
+    from tbl.helpers import  elapsed_time
+    src = r"Z:\Documents\ProjectSWM\tmp4_pytable\pytable\test\data\biggertable.dat"
+    t = Table.read(src, sep=";", header=0, skip = 0)
+    #t.what()   # CHECK
+    t.remove([2,3])
     
-    t.summary()
-    t.display()
-    t.toH5("test5_h5.h5", root = "t0")
+    t.convert([0], ["d"], fmt_date="%Y-%m-%d %H:%M")
+    t.convert([1], ["f"])
+    t[0].name = "Dates"
+    t[1].name = "WL(m)"
     
-    t.toH5("test5_h5.h5", root = "t1", append = True)
+    t.what(wait=True)
+    #t.head(40)
     
+    telap = elapsed_time(t[0].data, start="01/01/1970", fmt_date="%d/%m/%Y", verbose=True)
+    t.addColumn("telap_01_01_1970", telap)
+    #check results
+    t.what()
+    t.head(20)
+    
+    dst = r"Z:\Documents\ProjectSWM\tmp4_pytable\pytable\test\bigtable_modified.csv"
+    t.write(dst, sep=",", verbose=True)
+    
+    # next step should not be necessary. FIX BUG in toH5
+    #t.convert([0],["s"], fmt_date="%d/%m/%Y %H:%M:%S")
+    dst = r"Z:\Documents\ProjectSWM\tmp4_pytable\pytable\test\bigtable_modified.h5"
+    #This takes a while, but file size is reduced by almost 10X
+    # almost the same time without compressing.
+    t.toH5(dst, compress=True, verbose=True, root=None) 
+    
+
 if __name__ == "__main__":
-    #test0_convert()
-    test1_h5()
+    #create_date_elap_time_list()
+    read_save_table()
+    

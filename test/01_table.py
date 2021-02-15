@@ -168,6 +168,17 @@ def test00_print():
     t.setFormatStr(fmt_int="%04d", fmt_float="%4.2f", fmt_date=None, fmt_str="%10s")
     t.print()
 
+def test00_head_tail():
+    t  = Table("table0")
+    d1 = [i for i in range(99)]
+    d2 = [i*1.0 for i in range(99)]
+    t.addColumn("p1", d1)
+    t.addColumn("t1", d2)
+    
+    t.head(5)
+    
+    t.tail(5)
+    
 def test00_print_file():
     t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
     
@@ -207,17 +218,17 @@ def test00_read_empty_column():
 
 def test00_convert():
     t  = Table("table0").addColumn("p1", ["0.0", "1.0"]).addColumn("t1", ["1", "2", "3", "4"]).addColumn("e1", ['a', 'b'])
-    t.what()
+    #t.what()
     
     t.convert(cols=[0, 1], types=["f", "i"])
-    t.what()
-    t.print(2)
+    #t.what()
+    #t.print(2)
     
     t.setFormatStr("%d","%f","%d/%m/%Y","<<%s>>")
-    print(t[2].fmt)
+    #print(t[2].fmt)
     t.convert(cols=[2], types=["s"])
     t.what()
-    t.print(2)
+    #t.print(2)
 
 def test00_convert_date():
     t  = Table("table0")
@@ -225,63 +236,67 @@ def test00_convert_date():
     t.addColumn("d2", ["01/01/1900 00:00:00", "02/01/1900 00:15:00"])
     t.what()
     
-    t.setFormatStr("%d","%f","%d.%m.%Y","%s")
-    t.convert([0], ["d"])
+    t.setFormatStr("%d","%g","%d.%m.%Y","%s") # only used for printing
+    print(t[0])
+    
+    t.convert([0], ["d"], fmt_date = "%d.%m.%Y")
     t.what()
-    t.print(2)
+    t.head(2)
     
-# def test_iter(self):
-    # for c in self.table:
-        # print("Col: %s  Pos: %d"%(c.name, c.pos))
-        # pass
-    # self.assertTrue(True)
+def test00_io():
+    t  = Table("table0")
+    t.addColumn("p1", [0.0, 1.0])
+    t.addColumn("t1", [1, 2, 3, 4])
+    t.addColumn("e1", ['a', 'b'])
+    assert len(t) == 3, "len(t): " + str(len(t))
+    t.what()
+    t.head()
+    t.write("test_01table_io.txt")
+    
+    t0 = Table.read("test_01table_io.txt")
+    t0.what()
+    t0.head()
+    for c in t0: print(c.name)
+    assert len(t0) == 3, "len(t0): " + str(len(t0)) # trailing separator
+    
+def test00_toh5():
+    fpath = "test_01table_toh5.h5"
+    t  = Table("table0")
+    t.addColumn("floats", [0.0, 1.0])
+    t.addColumn("ints", [1, 2, 3, 4])
+    t.addColumn("strings", ['a', 'b'])
+    t.addColumn("dates", ['01/01/1970 00:00:00', '01/03/1980 00:15:00'])
+    t.convert([3], ["d"], fmt_date = "%d/%m/%Y %H:%M:%S")
+    t.setFormatStr("%d", "%g", "%d/%m/%Y %H:%M:%S", "%s")
+    t.toH5(dst=fpath, root=None, append=False, verbose=True, fmt_date="%d/%m/%Y %H:%M:%S")
+    t.what(wait=True)
+    
+    t, fpath = t.fromH5(src=fpath, root = None, verbose = True)
+    t.what()
 
-# def test_io(self):
-    # print(self.table)
-    # #self.table.summary()
-    # #self.table.display()
-    # #self.table.display(writeTitle = True, out = sys.stdout, sep = ",", columnWidth = 8, format = True)
-    # self.assertTrue(0==0)
-
-# def test_convert(self):
-    # t = Table("t0")
-    # t.addColumn("time", ["0.0", "0.1", "0.2", "0.3"])
-    # t.addColumn("pressure", ["0.1", "1.2", "0.3", "2.5", "0.8"])
-    # t.convert(["f", "f"])
-    # self.assertTrue(True)
+def test00_plotxy():
+    t  = Table("table0")
+    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
+    t.addColumn("temp", [0.0, 1.0, 4.0, 9.0])
+    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.addColumn("ec", [0.0, 2.5, 7.0, 13.0])
+    p = t.plotxy(["time"], ["temp", "pressure"])
+    p.show()
     
-# def test_write_read(self):
-    # filename = "test.csv"
-    # self.table.write(dst=filename, sep=",", verbose=True, fmt_date="%d/%m/%Y", fmt_float="%6.2f")
-    # t2 = Table.read(src=filename, verbose=True)
-    # t2.summary()
-    # #t2.display()
-    # self.assertEqual(t2[0].type, "s")
-    # self.assertEqual(len(t2), 2)
-    
-    # t2 = Table.read(src=filename, convert=True, verbose=True)
-    # t2.summary()
-    # self.assertEqual(t2[0].type, "f")
-    # self.assertEqual(t2[1].type, "f")
-    # self.assertEqual(len(t2), 2)
-
-# def test_plotxy(self):
-    # t = Table("plot")
-    # t.addColumn("x", [1, 2, 3])
-    
-    # p = t.plotxy([0], [0])
-    # #p.show()
-    
-    # self.assertTrue(0==0)
+    p = t.plotxy([0], [1, 2])
+    p = t.plotxy([0], [3], new = False)
+    p.show()
    
-def testit(t):
-    #try:
+def testit(t, wait = False):
+    try:
         #timeit(t, source=False)
         t()
         print("PASSED>> " + t.__name__)
-    #except:
-    #    print("FAILED>> " + t.__name__)  
-        
+        if wait: input("ENTER...")
+    except:
+        print("FAILED>> " + t.__name__)  
+    
+    
 if __name__ == '__main__':
     testit(test00_create_addColumnumn)
     testit(test01_setname)
@@ -300,14 +315,18 @@ if __name__ == '__main__':
     testit(test00_clone)
     testit(test00_append)
     testit(test00_ncols_nrows)
-    #testit(test00_what)
-    #testit(test00_print)
-    #testit(test00_print_file)
-    #testit(test00_write)
-    #testit(test00_read)
-    #testit(test00_read_big)
-    #testit(test00_read_empty_column)
+    testit(test00_what)
+    testit(test00_print)
+    testit(test00_head_tail)
+    testit(test00_print_file)
+    testit(test00_write)
+    testit(test00_read, wait = True)
+    testit(test00_read_big, wait = True)
+    testit(test00_read_empty_column, wait = True)
+    testit(test00_io, wait = True)
     testit(test00_convert)
     testit(test00_convert_date)
+    testit(test00_toh5, wait=True)
+    testit(test00_plotxy, wait=False)
     
     print("*** ALL DONE ***")

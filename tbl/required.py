@@ -1,4 +1,5 @@
 """ Module to check for installed packages """
+
 try:
     import numpy as np
     NUMPY_ON = True
@@ -18,6 +19,6 @@ except:
     H5_ON = False
 
 def report():
-    print("NUMPY installed: \t\t %b", NUMPY_ON)
+    print("NUMPY installed: \t\t %b",      NUMPY_ON)
     print("MATPLOTLIB installed: \t\t %b", PLT_ON)
-    print("H5PY installed: \t\t %b", H5_ON)
+    print("H5PY installed: \t\t %b",       H5_ON)

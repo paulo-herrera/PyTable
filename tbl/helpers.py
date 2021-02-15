@@ -6,6 +6,7 @@ __docformat__ = "google"
 import os
 import inspect
 import time
+from datetime import datetime 
 
 def split_line(l: str, sep: str, strip = False) -> list[str]:
     """ Split a line using sep as separator. 
@@ -88,6 +89,7 @@ def walker(fpath: str, ffilter = lambda x: True, verbose = False, level = 0, lfi
     indent = level*"   "
     apath = os.path.abspath(fpath)
     fname = os.path.basename(fpath)
+    
     if os.path.isdir(fpath):
         if verbose and not absPath: 
             print(indent + "+" + str(level) + ": " + fpath)
@@ -173,7 +175,7 @@ def touchit(src, replace, dst = None, verbose = False, src_encoding="utf-8", dst
     if verbose: print("    Touchit FINISHED")
     return
     
-def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, encoding: str = "utf-8"):
+def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, encoding: str = "utf-8", skip = 0):
     """ Reads data from a text file that has tabular format, i.e. columns of data
         are separated by a string.
         
@@ -184,10 +186,13 @@ def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, enc
             strip: if True, then strip blank space from strings.
             verbose: if True, print some information. 
             encoding: encoding of the file.
+            skip: number of lines to be skipped at the beginning of file.
         
         Returns:
             List of list of values in the file as strings. Each line in the file,
-            corresponds to a list of values.
+            corresponds to a list of values. It also returns list of skipped lines.
+            return (values, skipped)
+            
         
         NOTE: All content of the file is read at once, which should be ok for most files
              that are smaller than available memory. 
@@ -200,26 +205,91 @@ def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, enc
     
     if verbose: print("   Read %d lines"%(len(lines)))
     
+    if skip > 0:
+        skipped = lines[0:skip]
+        lines = lines[skip:]
+    else:
+        skipped = []
+    
     v = lines[0].split(sep)
     nsep = len(v)
-    if verbose: print("   # separators in first line: %d"%(nsep))
+    if verbose: 
+        print("   # separators in first line: %d  skip: %d"%(nsep, skip))
     
     values = []
     for l in lines:
-        ll = l.strip()
+        ll = l.strip()                 #FIX LAST EMPTY LINE
         if len(ll) == 0: 
             if verbose: print("    WARNING - Skipping empty line")
             continue
             
         v = ll.split(sep)
-        assert len(v) == nsep, "Line have different number of separators. nsep: %d  line: \n %s"%(nsep, ll)
+        assert len(v) == nsep, "Line have different number of separators. nsep: %d  line: >>%s<<\n"%(nsep, ll)
         if strip:
             for i in range(len(v)):
                 v[i] = v[i].strip()
         values.append(v)
     
-    return values
+    return values, skipped
+
+
+def elapsed_time(dates, start, fmt_date = "%d/%m/%Y H:M:S", verbose=False, verbose2=False):
+    """ Given a list of dates as datetime, returned a list of elapsed times in days
+        since start.
+        
+        Args:
+            dates: list of dates as datetime objects.
+            start: string that specifies initial date.
+            fmt_date: format that must be used to parse start string. [OPTIONAL]
+            verbose: if True, print some additional information.
+            verbose2: if True, print more additional information (list of dates and times).
+    """
+    d0 = datetime.strptime(start, fmt_date)
+    if verbose: 
+        print("Creating list of elapsed times")
+        print("  Initial date (str): " + start)
+        print("  Parsed initial date: " + str(d0) )
     
+    telap = []
+    for d in dates:
+        delta = d - d0
+        t = delta.days + delta.seconds / 86400.0 + delta.microseconds / (86400.0 * 1.e6)
+        telap.append(t)
+    
+    if verbose2:
+        print("Date \t Telap \t [days]")
+        for i in range(len(telap)):
+            sdate = dates[i].strftime(fmt_date)
+            print("%s \t %g \t [days]"%(sdate, telap[i]))
+        
+    return telap
+    
+
+def datetime_list(year0, year1, monthly=True, verbose=False):
+    """ Returns a list of datetimes between two years.
+        Args:
+            year0: initial year as int, e.g. 1970.
+            year1: final year as int, e.g. 1980.
+            monthy: If True, then include the first day of each month.
+            verbose: if True, print list of dates.
+        Returns:
+            List of datetime objects between both years.
+    """
+    dates = []
+    for y in range(year0, year1):
+        d = datetime(year = y, month=1, day=1)
+        dates.append(d)
+        if monthly:
+            for m in range(2, 13):
+                d = datetime(year = y, month=m, day=1)
+                dates.append(d)
+    
+    if verbose:
+        print("Generated dates: ")
+        for d in dates: print(str(d))
+    
+    return dates
+
 def timeit(f, verbose = False, source=False):
     """ Time the execution time of function f. 
     

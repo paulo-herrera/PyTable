@@ -24,14 +24,28 @@ class Column:
         self.data = []
         self.type: str = None                    # 1 character that indicates type of this column.
         self.fmt: str  = None                    # used to convert dates and float to strings. 
-        self.desc: str = desc if desc else None  # description of this column
         self.tostr = None                        # converter to string
-    
+        self.attrs = {}                          # add attributes to save units, dates, etc
+        if desc: self.setAttr("desc", desc)
+        
     def setName(self, name: str):
         """ Sets name of this column.
             Returns: This column.
         """
         self.name = name
+        return self
+    
+    def setAttr(self, name: str, value: str):
+        """ Sets attribute for this column.
+            
+            Args:
+                name: attribute name.
+                value: attribute value.
+            
+            Returns:
+                This table
+        """
+        self.attrs[name] = value
         return self
     
     def setFormatStr(self, fmt: str):
@@ -49,13 +63,6 @@ class Column:
         """
         s = self.tostr(self.data[idx])
         return s
-    
-    def setDescription(self, desc: str):
-        """ Sets description of this column.
-            Returns: This column.
-        """
-        self.desc = desc
-        return self
     
     def addData(self, data, ctype = None):
         """ Adds data to this column. 
@@ -111,7 +118,7 @@ class Column:
         self.data.append(e)
         return self
         
-    def convert(self, new: str = None, fmt: str = None):
+    def convert(self, new: str = None, fmt: str = None): 
         """ Converts column data type from current type to new type.
         
             Args:
@@ -128,15 +135,14 @@ class Column:
         self.fmt = fmt if fmt else self.fmt
         
         old = self.type
-        if old == "s" and not new:
-            assert len(self.data) > 0
-            d0 = self.data[0]
-            new = getTypeStr(d0, self.fmt)
+        #if old == "s" and not new:
+        #    assert len(self.data) > 0
+        #    d0 = self.data[0]
+        #    new = getTypeStr(d0, self.fmt)
             
         f, fmt = getTypeConverter(old, new, self.fmt)
         dd = []
         for nd in self.data:
-            print(str(nd))
             a = f(nd)
             dd.append(a)
             
@@ -208,7 +214,8 @@ class Column:
         if not name: name = "select(" + self.name + ")" 
         if not desc: desc = inspect.getsource(filter)
             
-        c = Column(name).addData(nd).setDescription(desc.strip())
+        c = Column(name).addData(nd)
+        c.setAttr("selec_filter", desc.strip())
         return c
     
     def remove(self, filter):
@@ -231,7 +238,9 @@ class Column:
         """ Returns an exact copy that does not shared data with this column (deep-copy)
         """    
         c = Column(self.name)
-        c.addData(self.data.copy())
+        c.fmt = self.fmt
+        ndata = self.data.copy()
+        c.addData(ndata)
         return c
 
     def apply(self, func):
@@ -250,7 +259,7 @@ class Column:
             nvals.append(val)
         return nvals
 
-    def map(self, func, desc=True):
+    def map(self, func):
         """ Updates values of this column as:
                 c[i] = func(i, c[i]) 
             
@@ -267,7 +276,8 @@ class Column:
             d = self.data[i]
             self.data[i] = func(i, d)
             
-        if desc: self.desc = inspect.getsource(func).strip()
+        desc = inspect.getsource(func).strip()
+        self.setAttr("map_filter", desc)
         
         return self
 
@@ -328,7 +338,8 @@ class Column:
                 start: index of first element that should be printed [OPTIONAL, DEFAULT = 0]
                 end: index of last element that should be printed [OPTIONAL, DEFAULT=NONE, last element]
         """
-        self.print(out, sep, fmt, writeName, start = 0, end = n - 1) # we add 1 later
+        end = n - 1 if n < len(self.data) else len(self.data) - 1
+        self.print(out, sep, fmt, writeName, start = 0, end = end) # we add 1 later
     
     def tail(self, n, out = sys.stdout, sep = "\n", fmt = None, writeName = False, ):
         """ Prints last n elements of this column.
@@ -369,9 +380,18 @@ class Column:
         assert self.type == "s"
         ns = self.reduce(func = lambda i, e, result: len(e.strip()) + result, result = 0)
         return ns == 0
-        
+    
+    def longStr(self):
+        """ Returns a string that describes content in this column, that it includes
+            attributes. For a shorter version, use __str__."""
+        s = "Col[%12s] \t %4s< \t %8d \t %10s\n"%(self.name, self.type, len(self.data), self.fmt)
+        for k, a in self.attrs.items():
+            s = s + "   -- %s: %s\n"%(k, a)
+        return s
+            
     def __str__(self):
-        s = "Col[%12s]: \t %4s< \t %8d"%(self.name, self.type, len(self.data) )
+        fmt = self.fmt if self.fmt else ""
+        s = "Col[%12s] \t %4s< \t %8d \t %10s"%(self.name, self.type, len(self.data), self.fmt)
         return s
 
     def __getitem__(self, idx):

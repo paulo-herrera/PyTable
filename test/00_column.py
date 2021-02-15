@@ -46,18 +46,18 @@ def test04_convert():
     c.convert("s", "%4.2f")
     assert c.type == "s"
     c[1] == "2.00"
-    
+   
     c = Column("ints").addData([0.0, 1.0, 2.0, 3.0])
     c.convert("i")
     
     c = Column("s").addData(['a', 'b', 'c'])
     c.setFormatStr("<<%s>>").convert("s")
-    c.head(3)
+    #c.head(3)
     
-    print("READING DATES")
+    #print("READING DATES")
     c = Column("d").addData(["01/01/1900", "02/01/1900"])
     c.setFormatStr("%d/%m/%Y").convert("d")
-    c.head(2)
+    #c.head(2)
 
 def test05_convert_dates():
     c = Column("test").addData(["01/05/1977 00:00:00", "01/07/1977 00:15:20"]) 
@@ -144,17 +144,13 @@ def test12_reduce():
 def test13_print():
     c = Column("write").addData([1, 4, 2, 3])
     c.print(sep=",")
-    
     c.print()
-    
     c.print(writeName = True)
 
 def test14_print_fmt():
     c = Column("write").addData([1.00, 4.03, 2.0, 3.])
     c.print(sep=",")
-    
     c.print()
-    
     c.print(writeName = True, fmt = "%4.2f")
 
 def test15_print_file():  
@@ -220,6 +216,12 @@ def test20_blank():
     except:
         pass
 
+def test21_longstr():
+    c = Column("i").addData([1,2,3,4])
+    c.setAttr("unit", "m/s")
+    s = c.longStr()
+    print(s)
+    
 def testit(t):
     #try:
         t()
@@ -250,4 +252,5 @@ if __name__ == '__main__':
     testit(test18_np)
     testit(test19_fmt)
     testit(test20_blank)
+    testit(test21_longstr)
     print("*** ALL DONE ***")
