@@ -1,5 +1,6 @@
 from tbl.helpers import split_line, is_iterable, walker, break_date, touchit, \
-                        read_tab_file, timeit, elapsed_time, datetime_list
+                        read_tab_file, timeit, elapsed_time, datetime_list, \
+                        process_text
 import os
 import datetime
 
@@ -150,7 +151,14 @@ def test07_elapsed_time():
     
 def test08_datetime_list():
     ds = datetime_list(year0=1980, year1=1990, monthly=True, verbose=True)
- 
+
+
+def test09_process_text():
+    src = "./data/bigtable.csv"
+    f = lambda x: sorted(x)
+    process_text(src, do = f, original = True)
+    
+    
 def testit(t, wait = False):
     #try:
         t()
@@ -169,3 +177,4 @@ if __name__ == '__main__':
     testit(test06_read_tab_file2)
     testit(test07_elapsed_time, wait=True)
     testit(test08_datetime_list, wait=True)
+    testit(test09_process_text, wait=True)

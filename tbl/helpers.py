@@ -3,7 +3,10 @@ __docformat__ = "google"
 """ Helper functions commonly used when processing data stored in multiple text files.
 """
 
+# TODO: implement some generic wait method, and some debugging, warning, error messages
+
 import os
+import sys
 import inspect
 import time
 from datetime import datetime 
@@ -289,6 +292,34 @@ def datetime_list(year0, year1, monthly=True, verbose=False):
         for d in dates: print(str(d))
     
     return dates
+
+def process_text(src, do, out = sys.stdout, encoding = "utf-8", original=False):
+    """ Basic text processing function: 
+            Read all lines in file src, and pass it to function do, which returns 
+            a modified list of lines that are printed to out.
+        
+        Args:
+            src: path to file.
+            do: function (list[str] -> list[str])
+            out: stream-like object to print resulting lines.
+            encoding: string that defines encoding of file.
+            original: if True, then print original before printing modified lines.
+    """
+    with open(src, encoding=encoding) as f:
+        lines = f.readlines()
+    
+    plines = []
+    for l in lines:
+        plines.append(l.strip())
+        
+    if original:
+        print(40*">" + "ORIGINAL" + 40*"<" )
+        for l in plines: print(l)
+        print(120*"-")
+        print(120*"=")
+    
+    nlines = do(plines)
+    for l in nlines: print(l.strip())
 
 def timeit(f, verbose = False, source=False):
     """ Time the execution time of function f. 

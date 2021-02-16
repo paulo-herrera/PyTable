@@ -27,7 +27,23 @@ class Column:
         self.tostr = None                        # converter to string
         self.attrs = {}                          # add attributes to save units, dates, etc
         if desc: self.setAttr("desc", desc)
-        
+    
+    
+    # TODO: ADD TEST
+    def like(self, other):
+        """ Set this table properties as other.
+            
+            Args:
+                other: table that has the properties to be copied.
+            
+            Returns:
+                This table.
+        """
+        self.type = other.type
+        self.fmt  = other.fmt
+        self.tostr = other.tostr
+        self.attrs = other.attrs
+    
     def setName(self, name: str):
         """ Sets name of this column.
             Returns: This column.

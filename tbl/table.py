@@ -13,6 +13,7 @@ import inspect
 from typing import List, Union, Callable
 
 # TODO: add shortcuts for cmd line use, e.g. a = addColumn, t=tail, h=head, s=save, r=Read 
+# TODO: change desc to attr as for Column
 class Table:
     """ Class to store a table as a collection of Columns. """
     
@@ -21,55 +22,8 @@ class Table:
         self.cols = []
         self.max_rows = -1
         self.desc = None   # some extra description that can be useful to identify source of data.
-
-
-    def setName(self, name: str):
-        """ Sets name (title) of this table. Allows chaining calls.
-
-            Args:
-                name: new name for this table.
-           
-            Returns:
-                This table
-        """
-        self.name = name
-        return self
-
     
-    def all(self):
-        """ Returns a list with the indexes of all positions in this list. 
-            Mostly used as a easier way to create a list of all columns to be used as 
-            input parameter of other methods in Table.
-        """
-        cols = [i for i in range(len(self.cols))]
-        return cols
-
     
-    def names(self):
-        """ Returns a list with ids (names) of columns in this table.
-        """
-        names = [c.name for c in self.cols]
-        return names
-
-    
-    def hasColumn(self, key):
-        """ Given a key returns True if it is in list of columns. 
-            key: an integer number or a name. 
-                 It should be faster to call with key as an integer.
-        """
-        assert not is_iterable(key), key
-        
-        if (isinstance(key, int)):
-            return (key >= 0 and key < len(self.cols))
-            
-        elif (isinstance(key, str)):
-            ids = self.names()
-            return key in ids
-            
-        else:
-            assert False, "Unknown type for key: " + str(key)
-
-        
     def addColumn(self, name: str = None, data = None, allowRepetition = False):
         """ Adds a column to this table.
             
@@ -102,51 +56,17 @@ class Table:
             self.max_rows = self.max_rows if (self.max_rows >= len(data)) else len(data)
         
         return self
-
     
-    def select(self, filter: Callable[[int, str], bool]): # -> Table
-        """ Returns a new table with columns that satisfy the filter criteria.
-            
-            Args:
-                filter: function with signature filter(pos, name) -> (True or False)
-            Returns:
-                A new table that contains the columns of this table for which filter == True.
-
-            NOTE: Both tables share the same columns, so changes apply to one table 
-                  are also propagated to the other one.
+    
+    def all(self):
+        """ Returns a list with the indexes of all positions in this list. 
+            Mostly used as a easier way to create a list of all columns to be used as 
+            input parameter of other methods in Table.
         """
-        source = inspect.getsource(filter)
-        # #print(source)
-        sel = Table(self.name)
-        sel.desc = "select(filter): " + source.strip() 
-        
-        for i in range(len(self.cols)):
-            c = self.cols[i]
-            if filter(i, c.name):
-                sel.addColumn(c.name, c.data)
-        return sel
-
+        cols = [i for i in range(len(self.cols))]
+        return cols
+    
    
-    def clone(self, shallow = True, newName = None):
-        """ Creates a shallow or deep copy of this table.
-            
-            Args:
-                shallow: if True, only pass references to columns in this table to new
-                         table. If False, then creates a deep copy, so that this table
-                         and new table do not share information.
-                newName: if present, then use it as title of new table.
-            
-            Returns:
-                New table.
-        """
-        newName = self.name + "(Copy)" if not newName else newName 
-        t = Table(newName)
-        for col in self.cols:
-            ncol = col if shallow else col.clone() 
-            t.addColumn(ncol.name, ncol)
-        return t
-
-        
     def append(self, other):
         """ Appends columns of other to this table.
         
@@ -170,6 +90,130 @@ class Table:
         self.__setMaxRows()
         return self
 
+    
+    def at(self, keys: List[Union[int,str]]) -> List[Column]:
+        """ Returns a list of columns given a list of key (strings or ints).
+            Similar to table[key] but for list of keys.
+            
+            Args:
+                keys: list of int or strings that specifiy columns in the table.
+            
+            Returns:
+                A list of columns.
+        """
+        assert is_iterable(keys)
+        cols = []
+        for k in keys:
+            c = self.__getitem__(k)
+            if c:
+                cols.append(c)
+            else:
+                print("WARNING - Key is not present in table: " + str(k))
+        return cols
+
+   
+    def clone(self, shallow = True, newName = None):
+        """ Creates a shallow or deep copy of this table.
+            
+            Args:
+                shallow: if True, only pass references to columns in this table to new
+                         table. If False, then creates a deep copy, so that this table
+                         and new table do not share information.
+                newName: if present, then use it as title of new table.
+            
+            Returns:
+                New table.
+        """
+        newName = self.name + "(Copy)" if not newName else newName 
+        t = Table(newName)
+        for col in self.cols:
+            ncol = col if shallow else col.clone() 
+            t.addColumn(ncol.name, ncol)
+        return t
+
+    
+    def fromH5(self, src, root = None, verbose = False):
+        """ Reads table from HDF5 file saved by calling toH5 or with a similar format.
+            
+            Args:
+                root: 
+            Returns:
+                Read table and full path to file, (t, f).
+        """
+        from datetime import datetime as dt
+        import os
+        assert H5_ON, "h5py is not available"
+        import h5py
+        
+        if verbose: 
+            print("Reading table from: " + src)
+            
+        src = os.path.abspath(src)
+        h5 = h5py.File(src, "r")
+        
+        root = root if root else "/"
+        g = h5[root]
+        name = g.attrs["table"]
+        date = g.attrs["date"]
+        if verbose:
+            print(" Table: " + name)
+            print("   Saved on: " + date)
+        
+        t = Table(name)
+        for name in g:
+            #print(name)       # DEBUG
+            ds = h5[root + "/" + name]
+            id = name
+            nvals = len(ds)
+            dtype = str(ds.dtype)
+            if verbose: print("   DATASET<%s>: %d values, type: %s"%(name, nvals, dtype))
+            
+            # Check if it creates too many temporaries
+            a = ds[:]
+            if "S" in dtype:            # strings are passed as raw binary, need to decode
+                data = [e.decode("utf-8") for e in a]
+            else:
+                data = a.tolist()
+            t.addColumn(id, data)
+            
+        h5.close()
+        if verbose: print("   Finished reading table")
+        return t, src
+        
+    
+    def hasColumn(self, key):
+        """ Given a key returns True if it is in list of columns. 
+            key: an integer number or a name. 
+                 It should be faster to call with key as an integer.
+        """
+        assert not is_iterable(key), key
+        
+        if (isinstance(key, int)):
+            return (key >= 0 and key < len(self.cols))
+            
+        elif (isinstance(key, str)):
+            ids = self.names()
+            return key in ids
+            
+        else:
+            assert False, "Unknown type for key: " + str(key)
+    
+    
+    def head(self, n = 5):
+        """ Prints first n rows with default formatting. Same can be achieved with print,
+            but calling head may be self-explanatory.
+            
+            Args:
+                n: number of rows to print.
+                
+            Returns:
+                This table.
+        """
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HEAD >>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        end = n if n < self.max_rows else self.max_rows
+        self.print(start = 0, maxRows = end)
+        return self
+    
     
     def index(self, names: List[str], verbose = False):
         """ Given a list of column ids, returns a list with their positions in the table.
@@ -195,78 +239,21 @@ class Table:
                 pass   
         return pos
 
-        
-    def at(self, keys: List[Union[int,str]]) -> List[Column]:
-        """ Returns a list of columns given a list of key (strings or ints).
-            Similar to table[key] but for list of keys.
-            
-            Args:
-                keys: list of int or strings that specifiy columns in the table.
-            
-            Returns:
-                A list of columns.
+    def isSquare(self):
+        """ Returns True if all columns have the same number of elements.
         """
-        assert is_iterable(keys)
-        cols = []
-        for k in keys:
-            c = self.__getitem__(k)
-            if c:
-                cols.append(c)
-            else:
-                print("WARNING - Key is not present in table: " + str(k))
-        return cols
-
-
-    def pop(self, key: Union[int, str]):
-        """ Removes column specified by key.
+        if len(self.cols) > 0: 
+            n = len(self.cols[0])
+            for c in self.cols:
+                if len(c) != n: return False
+        return True
         
-        Args:
-            key: int or string that specifies column.
         
-        Returns:
-            Removed column or None if key is not in this table. 
+    def names(self):
+        """ Returns a list with ids (names) of columns in this table.
         """
-        assert not is_iterable(key), "Only single keys accepted"
-        
-        if self.hasColumn(key):
-            if isinstance(key, int):
-                c = self.cols.pop(key)
-                return c
-                
-            elif isinstance(key, str):
-                idx = self.index([key])    # OPTIMIZE LATER, LIST CREATION
-                c = self.cols.pop(idx[0])
-                return c
-        return None
-
-
-    def remove(self, keys: List[Union[int,str]]):
-        """ Removes columns specified by list of keys
-            
-            Args:
-                keys: List of ints or strings that specify columns that should be removed.
-            
-            Returns:
-                This table.
-        """
-        assert is_iterable(keys)
-        
-        k = keys[0]
-        if isinstance(k, str):
-            idxs = self.index(keys)
-        elif isinstance(k, int):
-            idxs = keys
-        
-        # Safe way to remove from the list, order in decreasing order, so pop works.
-        idxs = sorted(idxs, reverse=True)
-        
-        removed = []
-        for idx in idxs:
-            #assert self.hasColumn(idx), "Column[%d] not in table."%(idx)
-            c = self.cols.pop(idx)
-            removed.append(c)
-        
-        return removed
+        names = [c.name for c in self.cols]
+        return names
 
 
     def ncols(self):
@@ -279,25 +266,6 @@ class Table:
         """ Returns the maximum number of rows in this table.
         """
         return self.max_rows
-
-
-    def what(self, out = sys.stdout, wait = False):
-        """ Prints a summary of (what is in) this table including name and information about 
-            each column such as: name, type and number of rows.
-        """
-        out.write("=" * 80 + "\n")
-        out.write("Table: %s\n"%(self.name))
-        if self.desc: out.write("  %s\n"%(self.desc))
-        out.write("-"*80 + "\n")
-        out.write("Col[%4s]: %20s \t %3s< \t %8s \n" % ("Pos", "Name", "Type", "#Rows"))
-        out.write("-" * 80 + "\n")
-        for i in range(len(self.cols)):
-            c = self.cols[i]
-            s =   "Col[%04d]: %20s \t %3s< \t %08d \n" % (i, c.name, c.type, len(c))
-            out.write(s)
-        out.write("=" * 80 + "\n")
-        
-        if wait: input("PRESS ENTER...")
 
 
     def setFormatStr(self, fmt_int: Union[str,None], fmt_float: Union[str,None], \
@@ -414,57 +382,60 @@ class Table:
             out.write("\n")
         
         return out
+        
+    
+    def pop(self, key: Union[int, str]):
+        """ Removes column specified by key.
+        
+        Args:
+            key: int or string that specifies column.
+        
+        Returns:
+            Removed column or None if key is not in this table. 
+        """
+        assert not is_iterable(key), "Only single keys accepted"
+        
+        if self.hasColumn(key):
+            if isinstance(key, int):
+                c = self.cols.pop(key)
+                return c
+                
+            elif isinstance(key, str):
+                idx = self.index([key])    # OPTIMIZE LATER, LIST CREATION
+                c = self.cols.pop(idx[0])
+                return c
+        return None
 
-    
-    def head(self, n = 5):
-        """ Prints first n rows with default formatting. Same can be achieved with print,
-            but calling head may be self-explanatory.
-            Args:
-                n: number of rows to print.
-            Returns:
-                This table.
-        """
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HEAD >>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        end = n if n < self.max_rows else self.max_rows
-        self.print(start = 0, maxRows = end)
-        return self
-        
-        
-    def tail(self, n = 5):
-        """ Prints last n rows with default formatting.
-            Args:
-                n: number of rows to print.
-            Returns:
-                This table.
-        """
-        maxRows = self.max_rows
-        start = maxRows - n
-        start = start if start >=0 else 0
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TAIL <<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        self.print(start = start, maxRows = -1)
-        return self
-    
-    
-    def save(self, dst: str, sep = ",", columnWidth = 10, missing = "-", verbose = False):
-        """ Saves table to file. Similar to print, but with default values.
-            Args:
-                dst: path to destination file.
-                sep: string used as separator between columns.
-                columnWidth: default width used to print columns. 
-                             There is no guarantee that the formats used to print
-                             elements of column fit withing this width.                              
-                missing: string used to represent missing values in table. DEFAULT: "-"
-                verbose: if True, then prints some additional information to sys.stdout.
-        """
-        if verbose:
-            print("Saving table: " + self.name)
-            print("          to: " + dst)
+
+    def remove(self, keys: List[Union[int,str]]):
+        """ Removes columns specified by list of keys
             
-        with open(dst, "w") as sdst:
-            self.print(writeTitle = False, out = sdst, sep = sep, \
-                       columnWidth = columnWidth, missing = missing, \
-                       verbose = verbose, lineBelow=False)
+            Args:
+                keys: List of ints or strings that specify columns that should be removed.
+            
+            Returns:
+                This table.
+        """
+        assert is_iterable(keys)
         
+        k = keys[0]
+        if isinstance(k, str):
+            idxs = self.index(keys)
+        elif isinstance(k, int):
+            idxs = keys
+        
+        # Safe way to remove from the list, order in decreasing order, so pop works.
+        idxs = sorted(idxs, reverse=True)
+        
+        removed = []
+        for idx in idxs:
+            #assert self.hasColumn(idx), "Column[%d] not in table."%(idx)
+            c = self.cols.pop(idx)
+            removed.append(c)
+        
+        return removed
+        
+    
     @staticmethod
     def read(src: str, sep: str=",", header=1, removeEmptyColumn=True, \
              verbose=True, encoding: str = "utf-8", allowRepetition = True, skip = 0):
@@ -522,6 +493,149 @@ class Table:
         t.__setMaxRows()
         
         return t
+    
+    
+    def row(self, idx):
+        """ Returns a list with elements of all columns at position idx.
+            
+            Args:
+                idx: int that specifies position of row.
+            
+            Returns:
+                Row at position idx.
+        """
+        assert not is_iterable(idx)
+        r = []
+        for c in self.cols:
+            if idx < len(c.data):
+                r.append(c[idx])
+            else:
+                r.append(None)
+        return r
+    
+    
+    def rows(self, idx_rows):
+        """ Returns a list with elements of all columns that are at position n.
+            Args:
+                idx_rows: list of rows as ints, e.g. [0,1,2,3].
+            
+            Returns:
+                A list with elements of all columns. If n is higher that len(c),
+                then the tuple includes None.
+        """
+        is_iterable(idx_rows)
+        self.__setMaxRows()
+        
+        _rows = []
+        for n in idx_rows:
+            assert n <= self.max_rows, "Row (%d) beyond table size (%d)"%(n, self.max_rows)
+            r = self.row(n)
+            _rows.append(r)
+        return _rows
+    
+    
+    def save(self, dst: str, sep = ",", columnWidth = 10, missing = "-", verbose = False):
+        """ Saves table to file. Similar to print, but with default values.
+            Args:
+                dst: path to destination file.
+                sep: string used as separator between columns.
+                columnWidth: default width used to print columns. 
+                             There is no guarantee that the formats used to print
+                             elements of column fit withing this width.                              
+                missing: string used to represent missing values in table. DEFAULT: "-"
+                verbose: if True, then prints some additional information to sys.stdout.
+        """
+        if verbose:
+            print("Saving table: " + self.name)
+            print("          to: " + dst)
+            
+        with open(dst, "w") as sdst:
+            self.print(writeTitle = False, out = sdst, sep = sep, \
+                       columnWidth = columnWidth, missing = missing, \
+                       verbose = verbose, lineBelow=False)
+    
+    
+    def select(self, filter: Callable[[int, str], bool]): # -> Table
+        """ Returns a new table with columns that satisfy the filter criteria.
+            
+            Args:
+                filter: function with signature filter(pos, name) -> (True or False)
+            Returns:
+                A new table that contains the columns of this table for which filter == True.
+
+            NOTE: Both tables share the same columns, so changes apply to one table 
+                  are also propagated to the other one.
+        """
+        source = inspect.getsource(filter)
+        # #print(source)
+        sel = Table(self.name)
+        sel.desc = "select(filter): " + source.strip() 
+        
+        for i in range(len(self.cols)):
+            c = self.cols[i]
+            if filter(i, c.name):
+                sel.addColumn(c.name, c.data)
+        return sel
+    
+    
+    def setName(self, name: str):
+        """ Sets name (title) of this table. Allows chaining calls.
+            
+            Args:
+                name: new name for this table.
+           
+            Returns:
+                This table
+        """
+        self.name = name
+        return self
+    
+    
+    def sort(self, key, reverse = False):
+        """ Sort rows of table according to key in ascending order.
+        
+            Args:
+                key: function that takes a row of the column and returns a single value, e.g.
+                     key (row) -> row[0]
+                reverse: if True, sort table in descending order.
+        
+            Returns:
+                This table with columns sorted by key.
+        """
+        self.__setMaxRows()
+        assert self.isSquare(), "Only implemented for square tables"
+        
+        rows = []
+        for i in range(self.max_rows):
+            r = self.row(i)
+            rows.append(r)
+        
+        nrows = sorted(rows, key = key, reverse=reverse)
+        for i in range(len(nrows)):
+            row = nrows[i]
+            for j in range(len(self.cols)):
+                r = row[j]
+                #print("(%d,%d)"%(i,j))         #DEBUG
+                self.cols[j].data[i] = r
+        return self
+    
+    
+    def tail(self, n = 5):
+        """ Prints last n rows with default formatting.
+            
+            Args:
+                n: number of rows to print.
+                
+            Returns:
+                This table.
+        """
+        maxRows = self.max_rows
+        start = maxRows - n
+        start = start if start >=0 else 0
+        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TAIL <<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        self.print(start = start, maxRows = -1)
+        return self
+    
     
     def toH5(self, dst, root = None, append = False, compress = True, verbose = True, fmt_date = None):
         """ Saves table to HDF5 file.
@@ -586,55 +700,6 @@ class Table:
         return dst
     
     
-    def fromH5(self, src, root = None, verbose = False):
-        """ Reads table from HDF5 file saved by calling toH5 or with a similar format.
-            
-            Args:
-                root: 
-            Returns:
-                Read table and full path to file, (t, f).
-        """
-        from datetime import datetime as dt
-        import os
-        assert H5_ON, "h5py is not available"
-        import h5py
-        
-        if verbose: 
-            print("Reading table from: " + src)
-            
-        src = os.path.abspath(src)
-        h5 = h5py.File(src, "r")
-        
-        root = root if root else "/"
-        g = h5[root]
-        name = g.attrs["table"]
-        date = g.attrs["date"]
-        if verbose:
-            print(" Table: " + name)
-            print("   Saved on: " + date)
-        
-        t = Table(name)
-        for name in g:
-            #print(name)       # DEBUG
-            ds = h5[root + "/" + name]
-            id = name
-            nvals = len(ds)
-            dtype = str(ds.dtype)
-            if verbose: print("   DATASET<%s>: %d values, type: %s"%(name, nvals, dtype))
-            
-            # Check if it creates too many temporaries
-            a = ds[:]
-            if "S" in dtype:            # strings are passed as raw binary, need to decode
-                data = [e.decode("utf-8") for e in a]
-            else:
-                data = a.tolist()
-            t.addColumn(id, data)
-            
-        h5.close()
-        if verbose: print("   Finished reading table")
-        return t, src
-        
-    
     def plotxy(self, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, new=True):
         """ Plots ycols vs xcols. 
         
@@ -660,32 +725,87 @@ class Table:
         p = plotxy(self, xcols, ycols, labels, fmt, legend, newfig = new)
         return p
     
+    
+    def table(self, idx_rows):
+        """ Creates a table with rows specified in the list idx_rows.
+            
+            Args:
+                idx_rows: list of indices of rows that should be included in the new table.
+                          Same as returned by Column.indexes and accepted by rows.
+            Returns:
+                New table that is a subtable of this table.
+        """
+        rows = self.rows(idx_rows)
+        t = Table("Subtable[" + self.name + "]")
+        
+        for i in range(len(self.cols)):  
+            data = []
+            for r in rows:
+                d = r[i]
+                data.append(d)
+            t.addColumn(self.cols[i].name, data)
+            t.cols[i].like(self.cols[i]) 
+            
+        return t
+        
+        
+    def wait(self):
+        """ Wait for user input before continuing.
+        """
+        input("PRESS ENTER...<%s,%s>\n"%(__file__, __name__))
+    
+    
+    def what(self, out = sys.stdout):
+        """ Prints a summary of (what is in) this table including name and information about 
+            each column such as: name, type and number of rows.
+            
+            Args: 
+                out: stream-like object.
+                
+            Returns:
+                This table.
+        """
+        out.write("=" * 80 + "\n")
+        out.write("Table: %s\n"%(self.name))
+        if self.desc: out.write("  %s\n"%(self.desc))
+        out.write("-"*80 + "\n")
+        out.write("Col[%4s]: %20s \t %3s< \t %8s \n" % ("Pos", "Name", "Type", "#Rows"))
+        out.write("-" * 80 + "\n")
+        for i in range(len(self.cols)):
+            c = self.cols[i]
+            s =   "Col[%04d]: %20s \t %3s< \t %08d \n" % (i, c.name, c.type, len(c))
+            out.write(s)
+        out.write("=" * 80 + "\n")
+        
+        return self
+        
+            
     def __setMaxRows(self):
         """ To be called internally to set max number of rows in table.
         """
-        self.max_rows = -1
+        self.max_rows = -1     
         for c in self.cols:
             if len(c) > self.max_rows: self.max_rows = len(c)
-
-
+    
+    
     def __str__(self):
         s = "Table: %s  #columns: %d"%(self.name, len(self.cols))
         return s
-
-
+    
+    
     def __iter__(self):
         """ Provides an iterator interface to allow looping over columns.
         """
         for c in self.cols:
             yield c
-
-
+    
+    
     def __len__(self) -> int:
         """ Returns number of columns in this table.
         """
         return len(self.cols)
-
-
+    
+    
     def __getitem__(self, key):
         """ Returns column that corresponds to key, which can a string or int.
             
@@ -705,15 +825,6 @@ class Table:
         else:
             None
 
-    
+
 if __name__ == "__main__":
     pass
-    # t = Table("table0")
-    # t.addCol("time", [0, 0.1, 0.2, 0.3])
-    # t.addCol("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
-    # t.addCol("time", [0.2, 0.33, 0.4, 0.5], allowRepetition= True)
-    # for c in t: 
-        # print(c.name)
-    
-    # t.select(filter = lambda i, n: True)
-    # t.summary()

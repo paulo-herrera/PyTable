@@ -188,7 +188,7 @@ def test00_print_file():
 
 def test00_write():
     t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
-    t.write("test_01table_write.txt", verbose = True)
+    t.save("test_01table_write.txt", verbose = True)
 
 def test00_read():
     src= "./data/dates1.csv"
@@ -251,7 +251,7 @@ def test00_io():
     assert len(t) == 3, "len(t): " + str(len(t))
     t.what()
     t.head()
-    t.write("test_01table_io.txt")
+    t.save("test_01table_io.txt")
     
     t0 = Table.read("test_01table_io.txt")
     t0.what()
@@ -269,7 +269,7 @@ def test00_toh5():
     t.convert([3], ["d"], fmt_date = "%d/%m/%Y %H:%M:%S")
     t.setFormatStr("%d", "%g", "%d/%m/%Y %H:%M:%S", "%s")
     t.toH5(dst=fpath, root=None, append=False, verbose=True, fmt_date="%d/%m/%Y %H:%M:%S")
-    t.what(wait=True)
+    t.what().wait()
     
     t, fpath = t.fromH5(src=fpath, root = None, verbose = True)
     t.what()
@@ -286,15 +286,93 @@ def test00_plotxy():
     p = t.plotxy([0], [1, 2])
     p = t.plotxy([0], [3], new = False)
     p.show()
-   
+
+def test00_rows():
+    t  = Table("table0")
+    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.addColumn("ec", [00, 25, 70, 130])
+    
+    rows = t.rows([1,3])
+    assert len(rows) == 2
+    assert len(rows[0]) == 4
+    assert (rows[0][1] == 10)
+    assert (rows[1][3] == 130)
+
+def test00_table():
+    t  = Table("table0")
+    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.addColumn("ec", [0, 25, 70, 130])
+    
+    t1 = t.table([1,3])
+    t1.what()
+    t1.head().wait()
+    
+    assert len(t1) == 4
+    assert len(t1[0]) == 2
+    assert (t1[1][0] == 10)
+    assert (t1[3][1] == 130)
+
+def test00_row():
+    t  = Table("table0")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.addColumn("ec", [0, 25, 70, 130])
+    
+    r = t.row(1)
+    assert r[1] == 10
+    assert r[3] == 25
+    
+    r = t.row(3)
+    assert r[1] == 90
+    assert r[3] == 130
+
+
+def test00_issquare():
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    assert t.isSquare()
+    
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("temp", [0, 10, 40])
+    assert not t.isSquare()
+    
+def test00_sort():
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.addColumn("ec", [0, 25, 70, 130])
+    t.print()
+    
+    t.sort(key = lambda x: x[0])
+    t.setName("sorted")
+    assert t[1][0] == 10
+    assert t[3][0] == 25
+    assert t[3][2] == 130
+    t.print()
+    
+    t.sort(key = lambda x: x[0], reverse=True)
+    t.setName("sorted_reverse")
+    assert t[1][0] == 40
+    assert t[3][0] == 70
+    assert t[3][1] == 130
+    t.print()
+    
 def testit(t, wait = False):
-    try:
+    #try:
         #timeit(t, source=False)
         t()
         print("PASSED>> " + t.__name__)
-        if wait: input("ENTER...")
-    except:
-        print("FAILED>> " + t.__name__)  
+        #if wait: input("ENTER...")
+    #except:
+    #    print("FAILED>> " + t.__name__)  
     
     
 if __name__ == '__main__':
@@ -318,15 +396,19 @@ if __name__ == '__main__':
     testit(test00_what)
     testit(test00_print)
     testit(test00_head_tail)
-    testit(test00_print_file)
-    testit(test00_write)
-    testit(test00_read, wait = True)
-    testit(test00_read_big, wait = True)
-    testit(test00_read_empty_column, wait = True)
+    #testit(test00_print_file)
+    #testit(test00_write)
+    #testit(test00_read, wait = True)
+    #testit(test00_read_big, wait = True)
+    #testit(test00_read_empty_column, wait = True)
     testit(test00_io, wait = True)
     testit(test00_convert)
     testit(test00_convert_date)
     testit(test00_toh5, wait=True)
-    testit(test00_plotxy, wait=False)
-    
+    #testit(test00_plotxy, wait=False)
+    testit(test00_row, wait=False)
+    testit(test00_rows, wait=False)
+    testit(test00_table, wait=False)
+    testit(test00_sort, wait=True)
+    testit(test00_issquare, wait=False)
     print("*** ALL DONE ***")
