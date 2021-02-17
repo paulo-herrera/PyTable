@@ -4,6 +4,11 @@ __docformat__ = "google"
 from .helpers import is_iterable
 from .required import PLT_ON
 
+if not PLT_ON: 
+    print("Missing matplotlib.pyplot")
+else:
+    import matplotlib.pyplot as plt
+        
 def plotxy(t, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, newfig=True):
     """ Plots ycols vs xcols. 
         Args:
@@ -25,13 +30,7 @@ def plotxy(t, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, newfig=Tru
             Reference to matplotlib.pyplot that can be used to:
             - show figure, plt.show()
             - save figure, plt.savefig(), etc.
-    """
-    if not PLT_ON: 
-        print("Missing matplotlib.pyplot")
-        return
-    else:
-        import matplotlib.pyplot as plt
-            
+    """    
     assert is_iterable(xcols) and is_iterable(ycols)
     assert len(labels) == 2, str(labels)
     

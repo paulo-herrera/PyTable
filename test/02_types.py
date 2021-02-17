@@ -66,7 +66,7 @@ def test01_getTypeConverter():
     # from int to float
     c, fmt = getTypeConverter("i", "f")
     v = c(2)
-    isintance(v, float)
+    isinstance(v, float)
     assert v == 2.0
     
 def test02_getType():

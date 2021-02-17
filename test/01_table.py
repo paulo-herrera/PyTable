@@ -364,6 +364,19 @@ def test00_sort():
     assert t[3][0] == 70
     assert t[3][1] == 130
     t.print()
+
+def test00__contains():
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    
+    assert 0 in t
+    assert 1 in t
+    assert 2 not in t
+    assert "time" in t
+    assert "temp" in t
+    assert "pressure" not in t
+    
     
 def testit(t, wait = False):
     #try:
@@ -411,4 +424,5 @@ if __name__ == '__main__':
     testit(test00_table, wait=False)
     testit(test00_sort, wait=True)
     testit(test00_issquare, wait=False)
+    testit(test00__contains, wait=False)
     print("*** ALL DONE ***")

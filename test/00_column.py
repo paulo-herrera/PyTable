@@ -48,7 +48,10 @@ def test04_convert():
     c[1] == "2.00"
    
     c = Column("ints").addData([0.0, 1.0, 2.0, 3.0])
-    c.convert("i")
+    #c.convert("i") # This would fail
+   
+    c = Column("ints").addData([0, 1, 2, 3])
+    c.convert("f")
     
     c = Column("s").addData(['a', 'b', 'c'])
     c.setFormatStr("<<%s>>").convert("s")
@@ -221,6 +224,12 @@ def test21_longstr():
     c.setAttr("unit", "m/s")
     s = c.longStr()
     print(s)
+
+def test22_stats():
+    c = Column("float").addData([0.0, 1.0, 2.0, 3.0])
+    #c.tail()
+    s = c.stats(verbose=True)
+    assert len(s) == 5
     
 def testit(t):
     #try:
@@ -253,4 +262,5 @@ if __name__ == '__main__':
     testit(test19_fmt)
     testit(test20_blank)
     testit(test21_longstr)
+    testit(test22_stats)
     print("*** ALL DONE ***")

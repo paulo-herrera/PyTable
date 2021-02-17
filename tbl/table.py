@@ -59,9 +59,7 @@ class Table:
     
     
     def all(self):
-        """ Returns a list with the indexes of all positions in this list. 
-            Mostly used as a easier way to create a list of all columns to be used as 
-            input parameter of other methods in Table.
+        """ Returns a list with the positions of all columns in this Table. 
         """
         cols = [i for i in range(len(self.cols))]
         return cols
@@ -183,8 +181,13 @@ class Table:
     
     def hasColumn(self, key):
         """ Given a key returns True if it is in list of columns. 
-            key: an integer number or a name. 
-                 It should be faster to call with key as an integer.
+            
+            Args:
+                key: an integer number or a name. 
+                     It should be faster to call with key as an integer.
+            
+            Returns:
+                True or false.
         """
         assert not is_iterable(key), key
         
@@ -214,6 +217,12 @@ class Table:
         self.print(start = 0, maxRows = end)
         return self
     
+    
+    def h(self, n = 5):
+        """ Similar to head for command line use. 
+        """
+        self.head(n)
+             
     
     def index(self, names: List[str], verbose = False):
         """ Given a list of column ids, returns a list with their positions in the table.
@@ -382,8 +391,34 @@ class Table:
             out.write("\n")
         
         return out
-        
     
+    
+    def plotxy(self, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, new=True):
+        """ Plots ycols vs xcols. 
+        
+            Args:
+                xcols: list of columns, e.g. [0,1,2] or ["col1", "col2"], that specifies list to be used as x-data.
+                       If len(xcols) == 1, then all ycols are plotted against a single column. 
+                       If len(xcols) > 1, then it must satisfy len(xcols) == len(ycols).
+                ycols: list of columns, e.g. [0,1,2] or ["col1", "col2"], that specifies list to be used as y-data.
+                fmt: list with strings that specify format to be used for lines and symbols.
+                     If len(fmt) == 1, then use the same format for all series.
+                     If len(fmt) > 1, then it must satisfy len(fmt) == len(ycols)
+                labels: labels to be used as titles for axes. It should satisfy len(labels) == 2.
+                        DEFAULT = ["x","y"].
+                legend: if True include legend [DEFAULT=True].
+                new: If True, creates a new figure [DEFAULT=True].
+                
+            
+            Returns:
+                Reference to matplotlib.pyplot that can be used to:
+                - show figure, plt.show()
+                - save figure, plt.savefig(), etc.
+        """
+        p = plotxy(self, xcols, ycols, labels, fmt, legend, newfig = new)
+        return p
+        
+        
     def pop(self, key: Union[int, str]):
         """ Removes column specified by key.
         
@@ -637,6 +672,12 @@ class Table:
         return self
     
     
+    def t(self, n = 5):
+        """ Similar to tail for command line use. 
+        """
+        self.tail(n)
+        
+    
     def toH5(self, dst, root = None, append = False, compress = True, verbose = True, fmt_date = None):
         """ Saves table to HDF5 file.
             Args:
@@ -700,32 +741,6 @@ class Table:
         return dst
     
     
-    def plotxy(self, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, new=True):
-        """ Plots ycols vs xcols. 
-        
-            Args:
-                xcols: list of columns, e.g. [0,1,2] or ["col1", "col2"], that specifies list to be used as x-data.
-                       If len(xcols) == 1, then all ycols are plotted against a single column. 
-                       If len(xcols) > 1, then it must satisfy len(xcols) == len(ycols).
-                ycols: list of columns, e.g. [0,1,2] or ["col1", "col2"], that specifies list to be used as y-data.
-                fmt: list with strings that specify format to be used for lines and symbols.
-                     If len(fmt) == 1, then use the same format for all series.
-                     If len(fmt) > 1, then it must satisfy len(fmt) == len(ycols)
-                labels: labels to be used as titles for axes. It should satisfy len(labels) == 2.
-                        DEFAULT = ["x","y"].
-                legend: if True include legend [DEFAULT=True].
-                new: If True, creates a new figure [DEFAULT=True].
-                
-            
-            Returns:
-                Reference to matplotlib.pyplot that can be used to:
-                - show figure, plt.show()
-                - save figure, plt.savefig(), etc.
-        """
-        p = plotxy(self, xcols, ycols, labels, fmt, legend, newfig = new)
-        return p
-    
-    
     def table(self, idx_rows):
         """ Creates a table with rows specified in the list idx_rows.
             
@@ -755,6 +770,12 @@ class Table:
         input("PRESS ENTER...<%s,%s>\n"%(__file__, __name__))
     
     
+    def w(self):
+        """ Similar to wait for command line use.
+        """
+        self.wait()
+    
+    
     def what(self, out = sys.stdout):
         """ Prints a summary of (what is in) this table including name and information about 
             each column such as: name, type and number of rows.
@@ -779,7 +800,13 @@ class Table:
         
         return self
         
-            
+    
+    def wh(self, out = sys.stdout):
+        """ Similar to what for command line use.
+        """
+        self.what(out)
+        
+        
     def __setMaxRows(self):
         """ To be called internally to set max number of rows in table.
         """
@@ -793,6 +820,18 @@ class Table:
         return s
     
     
+    def __contains__(self, c: Union[int, str]) -> bool:
+        """ Returns true if column c is in this table.
+            Similar to hasColumn. 
+            
+            Args: 
+                c: int or string.
+             
+            Returns:
+                True or False.
+        """
+        return self.hasColumn(c)
+        
     def __iter__(self):
         """ Provides an iterator interface to allow looping over columns.
         """

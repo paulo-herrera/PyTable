@@ -48,29 +48,32 @@ def getTypeConverter(old: str, new: str, fmt: str = None):
             assert fmt, "Missing format to convert to date"
             fmt_date = fmt
             return lambda sstr: datetime.strptime(sstr, fmt_date), fmt_date
+    
+    if new == "s":     
+        if old == "i":
+            fmt_int = fmt if fmt else "%d"
+            return lambda f: fmt_int%(f), fmt_int
+        elif old == "f":
+            fmt_float = fmt if fmt else "%g"
+            return lambda f: fmt_float%(f), fmt_float
+        elif old == "d":
+            assert fmt, "Missing format to convert to string"
+            fmt_date = fmt
+            return lambda x: datetime.strftime(x, fmt_date), fmt_date
         elif new == "s":
             #print(">>>>s")   # DEBUG
             fmt_str = fmt if fmt else "%s" # useful to print strings with some specific format
             return lambda f: fmt_str%(f), fmt_str
+    
+    if old == "i" and new == "f":
+        return float, None
+    
+    if old == "f" and new == "i": # possible loss of precision
+        assert False, "Converting from float to int: Possible loss of precision"
+        return int, None 
         
-    elif old == "i" and new == "s":
-        fmt_int = fmt if fmt else "%d"
-        return lambda f: fmt_int%(f), fmt_int
+    assert False, "old: %s new: %s"%(old, new)    
     
-    elif old == "f" and new == "i":
-        return int, None
-    
-    elif old == "f" and new == "s":
-        fmt_float = fmt if fmt else "%g"
-        return lambda f: fmt_float%(f), fmt_float
-    
-    elif old == "d" and new == "s":
-        assert fmt, "Missing format to convert to string"
-        fmt_date = fmt
-        return lambda x: datetime.strftime(x, fmt_date), fmt_date
-    else:
-        assert False, "Converting between %s and %s is not supported"%(old, new)
-        
 
 def isDateStr(sstr: str, fmt: str) -> bool:
     """ Returns True if sstr can be interpreted as a date.
@@ -168,7 +171,7 @@ def getH5TypeStr(stype: str) -> str:
     """
     assert (stype in ALLOWED_TYPES)
     htype = NUMPY_TYPE[stype]
-    print("%s >>>>>>>> %s: %s"%("getH5TypeStr", stype, htype))   # DEBUG
+    #print("%s >>>>>>>> %s: %s"%("getH5TypeStr", stype, htype))   # DEBUG
     return htype
     
 if __name__ == "__main__":
