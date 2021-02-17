@@ -740,16 +740,30 @@ class Table:
         if verbose: print("   Finished saving HDF5 file")
         return dst
     
-    
-    def table(self, idx_rows):
+    def _intersect(self, args):
+        """ Returns a list that is the intersection of elements in lists in args.
+        """
+        s = set(args[0])
+        for i in range(1, len(args)):
+            idx = args[i]
+            s = s.intersection(idx)
+        return list(s)
+        
+        
+    def table(self, *args):
         """ Creates a table with rows specified in the list idx_rows.
             
             Args:
-                idx_rows: list of indices of rows that should be included in the new table.
-                          Same as returned by Column.indexes and accepted by rows.
+                args: a single or multiples lists of indices of rows that should 
+                      be included in the new table. Same as returned by Column.indexes and accepted by rows.
             Returns:
-                New table that is a subtable of this table.
+                New table that is a subtable of this table and the list of indexes used to select rows.
         """
+        if len(args) > 1:
+            idx_rows = self._intersect(args)
+        else:
+            idx_rows = args[0]
+            
         rows = self.rows(idx_rows)
         t = Table("Subtable[" + self.name + "]")
         
@@ -761,9 +775,9 @@ class Table:
             t.addColumn(self.cols[i].name, data)
             t.cols[i].like(self.cols[i]) 
             
-        return t
-        
-        
+        return t, idx_rows
+
+    
     def wait(self):
         """ Wait for user input before continuing.
         """

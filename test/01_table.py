@@ -307,15 +307,40 @@ def test00_table():
     t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
     t.addColumn("ec", [0, 25, 70, 130])
     
-    t1 = t.table([1,3])
+    t1, idx = t.table([1,3])
     t1.what()
     t1.head().wait()
-    
     assert len(t1) == 4
     assert len(t1[0]) == 2
     assert (t1[1][0] == 10)
     assert (t1[3][1] == 130)
-
+    assert idx[0] == 1
+    assert idx[1] == 3
+    
+def test00__intersect():
+    a = [1, 2, 3, 4]
+    b = [0, 2, 4, 6]
+    t = Table("t0")
+    
+    c = t._intersect([a, b])
+    assert len(c) == 2
+    assert c[0] == 2
+    assert c[1] == 4
+    
+def test00_table2():
+    t  = Table("table0")
+    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
+    t.addColumn("temp", [1, 10, 40, 90])
+    t.addColumn("pressure", [2.0, 1.5, 6.0, 11.0])
+    t.addColumn("ec", [3, 25, 70, 130])
+    
+    t2, idx = t.table([0, 2, 3], [0, 1])
+    assert t2.nrows() == 1
+    assert t2[1][0] == 1
+    assert t2[3][0] == 3
+    assert len(idx) == 1
+    assert idx[0] == 0
+ 
 def test00_row():
     t  = Table("table0")
     t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
@@ -422,7 +447,9 @@ if __name__ == '__main__':
     testit(test00_row, wait=False)
     testit(test00_rows, wait=False)
     testit(test00_table, wait=False)
+    testit(test00_table2, wait=False)
     testit(test00_sort, wait=True)
     testit(test00_issquare, wait=False)
     testit(test00__contains, wait=False)
+    testit(test00__intersect, wait=False)
     print("*** ALL DONE ***")
