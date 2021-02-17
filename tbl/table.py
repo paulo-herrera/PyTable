@@ -747,7 +747,7 @@ class Table:
         for i in range(1, len(args)):
             idx = args[i]
             s = s.intersection(idx)
-        return list(s)
+        return sorted(list(s))
         
         
     def table(self, *args):

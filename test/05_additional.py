@@ -1,8 +1,24 @@
 """ Random collection of scripts that show different ways to accomplish some 
     common tasks.
 """
+from tbl.table import Table
 
-
+def subtable():
+    t = Table("intersection")
+    nrows = 30
+    a = [i for i in range(nrows)]
+    b = [i * i for i in range(nrows)]
+    
+    t.addColumn("i", a)
+    t.addColumn("i*i", b)
+    
+    f1 = t[0].indexes(filter = lambda i, e: i > 5)
+    f2 = t[1].indexes(filter = lambda i, e: e < 100)
+    
+    t2, idx = t.table(f1, f2)
+    t2.print()
+    print(idx)
+    
 
 def create_date_elap_time_list():
     from tbl.helpers import datetime_list, elapsed_time
@@ -45,5 +61,6 @@ def read_save_table():
 
 if __name__ == "__main__":
     #create_date_elap_time_list()
-    read_save_table()
+    #read_save_table()
+    subtable()
     
