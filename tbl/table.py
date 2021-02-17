@@ -221,7 +221,7 @@ class Table:
     def h(self, n = 5):
         """ Similar to head for command line use. 
         """
-        self.head(n)
+        return self.head(n)
              
     
     def index(self, names: List[str], verbose = False):
@@ -343,7 +343,7 @@ class Table:
         return self
 
 
-
+    #TODO: add option to pass list of rows to print. useful to check outliers, etc.
     def print(self, maxRows: int = -1, writeTitle: bool=True, out = sys.stdout, \
               sep: str="\t", columnWidth: int=10, missing: str="-", verbose: bool=False, \
               start: int=0, lineBelow = True):
@@ -675,7 +675,7 @@ class Table:
     def t(self, n = 5):
         """ Similar to tail for command line use. 
         """
-        self.tail(n)
+        return self.tail(n)
         
     
     def toH5(self, dst, root = None, append = False, compress = True, verbose = True, fmt_date = None):
@@ -818,7 +818,7 @@ class Table:
     def wh(self, out = sys.stdout):
         """ Similar to what for command line use.
         """
-        self.what(out)
+        return self.what(out)
         
         
     def __setMaxRows(self):

@@ -30,6 +30,25 @@ class Column:
         if desc: self.setAttr("desc", desc)
     
     
+    def accum(self, func, result):
+        """ Applies function func to each element of column and saves result
+            in list. Difference with reduce is that it produces a list.
+            
+            Args:
+                func: function with signature: func(i, e, result) -> result
+                result: initial value for result.
+            
+            Example:
+                To calculate cummulative sum: cumsum = c.accum(func = lambda i, e, r: e + r)
+        """
+        r = []
+        for i in range(len(self.data)):
+            e = self.data[i]
+            result = func(i, e, result)
+            r.append(result)
+        return r
+        
+    
     def addData(self, data, ctype = None):
         """ Adds data to this column. 
             Args:
@@ -149,7 +168,8 @@ class Column:
             if (filter(i, v)): values.append(v)
         return values
         
-        
+    
+    #TODO: RAISE EXCEPTION    
     def convert(self, new: str = None, fmt: str = None): 
         """ Converts column data type from current type to new type.
         
@@ -217,6 +237,7 @@ class Column:
         self.head(n, out, sep, fmt, writeName)
     
     
+    #TODO: rename to "where"
     def indexes(self, filter):
         """ Return a list of indexes of the elements of the column that satisfy:
                 filter(i, c[i]) = True
@@ -451,6 +472,36 @@ class Column:
             
         return (nvals, min, max, mean, stddev)
     
+    def store(self, func, start: int = 0, end = None):
+        """ Applies function func with signature func(i, e, data) -> result
+            and store result in a list.
+            
+            Args:
+                 func: function that accepts as argument index i, element e and list of
+                      data stored in this column and return a value.
+                start: start the loop at this position. Can be useful to compute quantities 
+                       between two data elementes separted by more than 1.
+                  end: if present, specifies upper limit for loop. If not present
+                       then use len(self.data). Can be useful to compute quantities 
+                       between two data elementes separted by more than 1.                
+                
+            Example: To mark outliers in a column, assuming that outliers differ by more than 
+                     a specified tolerance TOL from the previous value.
+                
+                    c.store(func = lambda i, e, data: abs(e - data[i-1]) > TOL if (i > 0) else False)
+                
+                To find the index of the outlier in the column, use:
+                    idx = [i for i, e in enumerate(r) if e]
+        """
+        end = end if end else len(self.data)
+        st = []
+        for i in range(start, end):
+            e = self.data[i]
+            r = func(i, e, self.data)
+            st.append(r)
+        return st
+        
+        
     def tail(self, n: int = 5, out = sys.stdout, sep = "\n", fmt = None, writeName = False):
         """ Prints last n elements of this column.
             

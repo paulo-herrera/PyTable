@@ -230,13 +230,48 @@ def test22_stats():
     #c.tail()
     s = c.stats(verbose=True)
     assert len(s) == 5
+
+def test23_accum():
+    c = Column("ints").addData([1, 2, 3, 4])
+    r = c.accum(func = lambda i, e, result: e + result, result = 0)
+    assert r[0] == 1
+    assert r[1] == 3
+    assert r[2] == 6
+    assert r[3] == 10
     
-def testit(t):
+def test24_store():
+    TOL = 1.1
+    c = Column("ints").addData([1, 5, 6, 7, 10, 13])
+    print(c.data)
+    r = c.store(func = lambda i, e, data: abs(e - data[i-1]) > TOL, start = 1)
+    print(r)
+    assert r[0]
+    assert not r[1]
+    assert not r[2]
+    assert r[3]
+    
+    
+    r = c.store(func = lambda i, e, data: abs(e - data[i-1]) > TOL if (i > 0) else False, start = 0)
+    print(r)
+    assert not r[0]
+    assert r[1]
+    assert not r[2]
+    assert not r[3]
+    assert r[4]
+    assert r[5]
+    idx = [i for i, e in enumerate(r) if e]
+    print(idx)
+    
+    
+def testit(t, wait = False):
     #try:
+        #timeit(t, source=False)
         t()
         print("PASSED>> " + t.__name__)
+        #if wait: input("ENTER...")
     #except:
     #    print("FAILED>> " + t.__name__)  
+    
         
 if __name__ == '__main__':
     testit(test00_create)
@@ -263,4 +298,6 @@ if __name__ == '__main__':
     testit(test20_blank)
     testit(test21_longstr)
     testit(test22_stats)
+    testit(test23_accum)
+    testit(test24_store, wait = True)
     print("*** ALL DONE ***")

@@ -355,3 +355,29 @@ def walker(fpath: str, ffilter = lambda x: True, verbose = False, level = 0, lfi
             if verbose: print("")
             
         return lfiles
+
+# TODO: ADD TEST
+def dict_from_txt(src, sep = ",", converter = None, verbose = False, skip = 0, encoding = "utf-8"):
+    """ Reads a dictionary {key:value} from text file.
+        
+        Args:
+            src: path to text file.
+            sep: separartor between key, value pair.
+            converter: if present, use it to convert values from strings.
+            verbose: if True, prints some information to stdout.
+            skip: skip this number of lineas before reading values.
+            encoding: use this encoding to read the content of the file.
+    """
+    lines, skipped = read_tab_file(src, sep = sep, strip = True, verbose = verbose, encoding = encoding, skip = skip)
+    
+    nvalues = len(lines)
+    d = {}
+    for l in lines:
+        assert len(l) == 2, l
+        k = l[0]
+        v = l[1]
+        if converter: v = converter(v)
+        d[k] = v
+    
+    return d 
+    
