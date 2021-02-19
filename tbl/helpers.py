@@ -98,6 +98,9 @@ def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", verbose=False, ve
             fmt_date: format that must be used to parse start string. [OPTIONAL]
             verbose: if True, print some additional information.
             verbose2: if True, print more additional information (list of dates and times).
+        
+        Returns:
+            A list of elapsed times as dates, and starting date as a datetime object.
     """
     d0 = datetime.strptime(start, fmt_date)
     if verbose: 
@@ -117,7 +120,7 @@ def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", verbose=False, ve
             sdate = dates[i].strftime(fmt_date)
             print("%s \t %g \t [days]"%(sdate, telap[i]))
         
-    return telap
+    return telap, d0
     
 
 def is_iterable(obj):

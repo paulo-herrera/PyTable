@@ -1,7 +1,7 @@
 #__docformat__ = "google"
 
 from .ttypes import getType, isTypeStr, getTypeConverter, NUMPY_TYPE
-from .helpers import is_iterable
+from .helpers import is_iterable, elapsed_time
 from .required import NUMPY_ON
 import sys
 import math
@@ -176,7 +176,7 @@ class Column:
             Args:
                 new: new type as a one character string (see ttypes.ALLOWED_TYPES).
                      Optional only if old type is string "s" (automatic conversion of strings). 
-                fmt: format used to convert dates and floats to strings.
+                fmt: format used to convert dates to strings.
                      If present, then self.fmt is updated to fmt.      
                 default: if present, used as default value for missing elements. 
                          If column contains empty strings, then it is required to
@@ -543,7 +543,27 @@ class Column:
         """
         self.tail(n, out, sep, fmt, writeName)
         
+    
+    def telap(self, start: str, fmt_date: str ="%d/%m/%Y %H:%M:%S", verbose = False):
+        """ Returns a column that contains elapsed time in days since start date,
+            assuming that this column contains dates as datetime objects.
+            
+            Args:
+                start: reference date as string, e.g. "01/01/1970 00:00:00"
+                fmt_date: string that specifies format to read starting date.
+                verbose: if True, prints some information to sys.stdout.
+                
+            Returns:
+                A new column with elapsed time names "telap_XXXX", 
+                where XXXX=reference date formated as d_m_Y__H_M_S. 
+        """
+        assert self.type == "d"
+        telap, d0 = elapsed_time(self.data, start, fmt_date, verbose)
+        id = "telap_" + d0.strftime("%d_%m_%Y__%H_%M_%S")
+        c = Column(id).addData(telap)
+        return c
         
+    
     def __str__(self):
         fmt = self.fmt if self.fmt else ""
         s = "Col[%12s] \t %4s< \t %8d \t %10s"%(self.name, self.type, len(self.data), self.fmt)

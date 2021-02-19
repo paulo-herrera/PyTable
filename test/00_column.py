@@ -242,9 +242,9 @@ def test23_accum():
 def test24_store():
     TOL = 1.1
     c = Column("ints").addData([1, 5, 6, 7, 10, 13])
-    print(c.data)
+    #print(c.data)
     r = c.store(func = lambda i, e, data: abs(e - data[i-1]) > TOL, start = 1)
-    print(r)
+    #print(r)
     assert r[0]
     assert not r[1]
     assert not r[2]
@@ -252,7 +252,7 @@ def test24_store():
     
     
     r = c.store(func = lambda i, e, data: abs(e - data[i-1]) > TOL if (i > 0) else False, start = 0)
-    print(r)
+    #print(r)
     assert not r[0]
     assert r[1]
     assert not r[2]
@@ -260,7 +260,20 @@ def test24_store():
     assert r[4]
     assert r[5]
     idx = [i for i, e in enumerate(r) if e]
-    print(idx)
+    #print(idx)
+    
+
+def test25_telap():
+    d = ["01/01/1970", "08/01/1970", "15/01/1970"]
+    c = Column("Dates").addData(d)
+    c.convert("d", fmt = "%d/%m/%Y")
+    telap = c.telap("01/01/1970 00:00:00")
+    print(telap)
+    telap.tail(5)
+    assert int(telap[0]) == 0
+    assert int(telap[1]) == 7
+    assert int(telap[2]) == 14
+    
     
     
 def testit(t, wait = False):
@@ -299,5 +312,6 @@ if __name__ == '__main__':
     testit(test21_longstr)
     testit(test22_stats)
     testit(test23_accum)
-    testit(test24_store, wait = True)
+    testit(test24_store)
+    testit(test25_telap)
     print("*** ALL DONE ***")
