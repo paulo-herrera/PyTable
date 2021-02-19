@@ -2,6 +2,7 @@
     common tasks.
 """
 from tbl.table import Table
+from tbl.helpers import file_hash, timeit
 
 def subtable():
     t = Table("intersection")
@@ -25,6 +26,7 @@ def create_date_elap_time_list():
     
     dates = datetime_list(year0 = 1970, year1 = 2023, monthly=True, verbose=False)
     telap = elapsed_time(dates, start="01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True, verbose2=True)
+
 
 def read_save_table():
     from tbl.table import Table
@@ -57,10 +59,16 @@ def read_save_table():
     #This takes a while, but file size is reduced by almost 10X
     # almost the same time without compressing.
     t.toH5(dst, compress=True, verbose=True, root=None) 
-    
+
+
+def hash():
+    src = "data/biggertable.dat"
+    file_hash(src, verbose=True) # TIMEIT LATER
+
 
 if __name__ == "__main__":
     #create_date_elap_time_list()
     #read_save_table()
-    subtable()
+    #subtable()
+    hash()
     

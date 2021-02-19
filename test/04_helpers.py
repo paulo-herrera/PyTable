@@ -1,6 +1,6 @@
 from tbl.helpers import split_line, is_iterable, walker, break_date, touchit, \
                         read_tab_file, timeit, elapsed_time, datetime_list, \
-                        process_text
+                        process_text, file_hash
 import os
 import datetime
 
@@ -159,9 +159,16 @@ def test09_process_text():
     process_text(src, do = f, original = True)
     
     
+def test10_file_hash():
+    src = "./data/bigtable.csv"
+    h = file_hash(src, method = "md5", verbose = True)
+    print(str(h))
+    
+    
 def testit(t, wait = False):
     #try:
-        t()
+        timeit(t, verbose = True, source=False)
+        #t()
         print("PASSED>> " + t.__name__)
         if wait: input("PRESS ENTER...")
     #except:
@@ -177,4 +184,5 @@ if __name__ == '__main__':
     testit(test06_read_tab_file2)
     testit(test07_elapsed_time, wait=True)
     testit(test08_datetime_list, wait=True)
-    testit(test09_process_text, wait=True)
+    #testit(test09_process_text, wait=True)
+    testit(test10_file_hash, wait=True)

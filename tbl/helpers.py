@@ -56,7 +56,9 @@ def break_date(sdate: str, dsep: str = "/", hsep: str = ":", sep=" "):
             hh = (int(hhh[0]), 0, 0) 
         else:
             assert False
-            
+    else:
+        hh = (0,0,0)
+        
     return dd[0], dd[1], dd[2], hh[0], hh[1], hh[2]
 
 
@@ -86,7 +88,7 @@ def datetime_list(year0, year1, monthly=True, verbose=False):
     return dates
 
 
-def elapsed_time(dates, start, fmt_date = "%d/%m/%Y H:M:S", verbose=False, verbose2=False):
+def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", verbose=False, verbose2=False):
     """ Given a list of dates as datetime, returned a list of elapsed times in days
         since start.
         
@@ -150,7 +152,8 @@ def process_text(src, do, out = sys.stdout, encoding = "utf-8", original=False):
         print(120*"=")
     
     nlines = do(plines)
-    for l in nlines: print(l.strip())
+    for l in nlines: 
+        out.write(l)
     
     
 def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, encoding: str = "utf-8", skip = 0):
@@ -379,5 +382,44 @@ def dict_from_txt(src, sep = ",", converter = None, verbose = False, skip = 0, e
         if converter: v = converter(v)
         d[k] = v
     
-    return d 
+    return d
     
+def file_hash(src: str, method="sha1", verbose = False):
+    """ Compute the SHA1 hash of a file, 
+        which can be useful to check for corrupt or modified files later on.
+        
+        Args:
+            src: path to file.
+            method: sha1 or md5.
+            verbose: if True, prints some information to sys.stdout
+        Returns:
+            hexdigest.
+            
+        REF: https://stackoverflow.com/a/22058673
+    """
+    import hashlib
+    # BUF_SIZE is totally arbitrary, change for your app!
+    BUF_SIZE = 4*65536  # lets read stuff in X * 64kb chunks!
+    
+    if verbose:
+        print("Computing file hash for: ")
+        print("    " + src)   
+    
+    if method.lower() == "sha1":
+        hash = hashlib.sha1()
+    elif method.lower() == "md5":
+        hash = hashlib.md5()
+    else:
+        assert False, "Unknown hashing method: " + method
+        
+    with open(src, 'rb') as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            hash.update(data)
+    
+    hexhash = hash.hexdigest()
+    if verbose: print("    hash: " + hexhash)
+    
+    return hexhash

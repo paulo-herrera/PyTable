@@ -24,12 +24,17 @@ def test03_names():
     assert len(ids) == 2
     assert ids[1] == "pressure"
     
+    ids = t.names(case="U")
+    assert len(ids) == 2
+    assert ids[1] == "PRESSURE"
+    
 def test04_index():
     t = Table("table0")
     t.addColumn("time", [0.0, 0.1, 0.2, 0.3])
     t.addColumn("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
 
     id0 = t.index(["time"])
+    print(id0)
     assert len(id0) == 1
     assert id0[0] == 0
     
@@ -402,6 +407,24 @@ def test00__contains():
     assert "temp" in t
     assert "pressure" not in t
     
+def test00_setID():
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("temp", [0, 10, 40, 90])
+    t.setID()
+    t.what().wait()
+    assert len(t) == 3
+    assert t[2][0] == 1
+    assert t[2][2] == 3
+    
+    t[1].append(120)
+    t.setID()
+    t.what()
+    t.tail().wait()
+    assert len(t) == 3
+    assert len(t[2]) == 5
+    assert t[2][4] == 5
+    
     
 def testit(t, wait = False):
     #try:
@@ -452,4 +475,5 @@ if __name__ == '__main__':
     testit(test00_issquare, wait=False)
     testit(test00__contains, wait=False)
     testit(test00__intersect, wait=False)
+    testit(test00_setID)
     print("*** ALL DONE ***")

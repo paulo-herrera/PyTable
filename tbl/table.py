@@ -182,6 +182,9 @@ class Table:
     def hasColumn(self, key):
         """ Given a key returns True if it is in list of columns. 
             
+            NOTE: keys are compared always as lower case. Thus, 
+                 "Duck" == "duck" == "DUCK"
+                 
             Args:
                 key: an integer number or a name. 
                      It should be faster to call with key as an integer.
@@ -195,8 +198,8 @@ class Table:
             return (key >= 0 and key < len(self.cols))
             
         elif (isinstance(key, str)):
-            ids = self.names()
-            return key in ids
+            ids = self.names(case = "L")
+            return key.lower() in ids
             
         else:
             assert False, "Unknown type for key: " + str(key)
@@ -212,6 +215,7 @@ class Table:
             Returns:
                 This table.
         """
+        self.__setMaxRows()
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HEAD >>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         end = n if n < self.max_rows else self.max_rows
         self.print(start = 0, maxRows = end)
@@ -236,14 +240,18 @@ class Table:
         """
         assert is_iterable(names)
         
-        ids = self.names()    # maybe optimize later if needed, create list at insertion of column
+        # maybe optimize later if needed, create list at insertion of column
+        ids = self.names(case = "U")
+        #print(ids)                 # DEBUG
         pos = []
         for k in names:
-            if k in ids:
-                idx = ids.index(k)
+            key = k.upper()
+            #print(key)            # DEBUG
+            if key in ids:   
+                idx = ids.index(key)
                 pos.append(idx)
             elif verbose:
-                print(" WARNING: Key is not in Table. [key - %s]"%(k))
+                print(" WARNING: Key is not in Table. [key - %s]"%(key))
             else:
                 pass   
         return pos
@@ -258,10 +266,20 @@ class Table:
         return True
         
         
-    def names(self):
-        """ Returns a list with ids (names) of columns in this table.
+    def names(self, case = "M"):
+        """ Returns a list with ids (names) of columns in this table. Depending on
+            case, names are returned as lower, upper or a mix of lower and upper case.
+            
+            Args: 
+                case: L (lower), U (upper) or M (mix lower and upper) [DEFAULT = M]
         """
-        names = [c.name for c in self.cols]
+        if case == "M":
+            names = [c.name for c in self.cols]
+        elif case == "L":
+            names = [c.name.lower() for c in self.cols]
+        elif case == "U":
+            names = [c.name.upper() for c in self.cols]
+        
         return names
 
 
@@ -613,6 +631,27 @@ class Table:
         return sel
     
     
+    def setID(self):
+        """ Sets a column with a unique identifier for each row (record) in the this
+            Table. 
+            
+            Returns:
+                This table.
+        """
+        self.__setMaxRows()
+        
+        _nrows = self.nrows()
+        id = [i + 1 for i in range(_nrows)]
+        c = Column("id").addData(id)
+        
+        if self.hasColumn("id"):
+            self.__getitem__("id").data = id
+        else:
+            self.cols.append(c)
+        
+        return self
+    
+     
     def setName(self, name: str):
         """ Sets name (title) of this table. Allows chaining calls.
             
@@ -664,6 +703,7 @@ class Table:
             Returns:
                 This table.
         """
+        self.__setMaxRows()
         maxRows = self.max_rows
         start = maxRows - n
         start = start if start >=0 else 0
@@ -800,6 +840,8 @@ class Table:
             Returns:
                 This table.
         """
+        self.__setMaxRows()  # make sure this get updated after appending data to a column
+        
         out.write("=" * 80 + "\n")
         out.write("Table: %s\n"%(self.name))
         if self.desc: out.write("  %s\n"%(self.desc))

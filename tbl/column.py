@@ -170,7 +170,7 @@ class Column:
         
     
     #TODO: RAISE EXCEPTION    
-    def convert(self, new: str = None, fmt: str = None): 
+    def convert(self, new: str = None, fmt: str = None, default = None): 
         """ Converts column data type from current type to new type.
         
             Args:
@@ -178,7 +178,9 @@ class Column:
                      Optional only if old type is string "s" (automatic conversion of strings). 
                 fmt: format used to convert dates and floats to strings.
                      If present, then self.fmt is updated to fmt.      
-            
+                default: if present, used as default value for missing elements. 
+                         If column contains empty strings, then it is required to
+                         convert column to float or int.                          
             Returns:
                 This column.
         """
@@ -195,7 +197,11 @@ class Column:
         f, fmt = getTypeConverter(old, new, self.fmt)
         dd = []
         for nd in self.data:
-            a = f(nd)
+            #print(">>" + str(nd) + "<<")   # DEBUG
+            if nd:
+                a = f(nd)
+            else:
+                a = default
             dd.append(a)
             
         self.data = dd
@@ -203,6 +209,15 @@ class Column:
         
         return self
     
+    # def elapsedTime(self, start, fmt_date="%d/%m/%Y %H:%M:%S"):
+        # """" Returns a list of floats that represent elapsed time in days since
+            # start date.
+            
+            # Args:  
+                
+            
+            # NOTE: Column should contains dates.
+        # """
     
     def format(self, idx: int):
         """ Returns a formatted string of element c[idx] in this column.
@@ -471,6 +486,7 @@ class Column:
             print(__fmt%(self.name, nvals, min, max, mean, stddev))
             
         return (nvals, min, max, mean, stddev)
+    
     
     def store(self, func, start: int = 0, end = None):
         """ Applies function func with signature func(i, e, data) -> result
