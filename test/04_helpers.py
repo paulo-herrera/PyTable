@@ -163,7 +163,10 @@ def test10_file_hash():
     src = "./data/bigtable.csv"
     h = file_hash(src, method = "md5", verbose = True)
     print(str(h))
-    
+ 
+
+def test11_report_ missing():
+    asser False, 'Not implemented yet'
     
 def testit(t, wait = False):
     #try:

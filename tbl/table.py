@@ -14,6 +14,8 @@ from typing import List, Union, Callable
 
 # TODO: add shortcuts for cmd line use, e.g. a = addColumn, t=tail, h=head, s=save, r=Read 
 # TODO: change desc to attr as for Column
+# TODO: add setColumn() so we can change Column in place and make sure all properties are transferred and/or set propertly
+# TODO: add type and units to header when writing and read it back 
 class Table:
     """ Class to store a table as a collection of Columns. """
     
@@ -129,8 +131,8 @@ class Table:
             t.addColumn(ncol.name, ncol)
         return t
 
-    
-    def fromH5(self, src, root = None, verbose = False):
+    @staticmethod
+    def fromH5(src, root = None, verbose = False):
         """ Reads table from HDF5 file saved by calling toH5 or with a similar format.
             
             Args:
@@ -602,11 +604,11 @@ class Table:
             print("Saving table: " + self.name)
             print("          to: " + dst)
             
-        with open(dst, "w") as sdst:
-            self.print(writeTitle = False, out = sdst, sep = sep, \
+        sdst = open(dst, "w")
+        self.print(writeTitle = False, out = sdst, sep = sep, \
                        columnWidth = columnWidth, missing = missing, \
                        verbose = verbose, lineBelow=False)
-    
+        sdst.close()
     
     def select(self, filter: Callable[[int, str], bool]): # -> Table
         """ Returns a new table with columns that satisfy the filter criteria.
@@ -757,6 +759,8 @@ class Table:
         g.attrs["date"] = dt.now().strftime("%d_%m_%Y__%H_%M_%S")
         
         for c in self.cols:
+            # avoid problems when finding the correct path
+            c.name = c.name.replace("/","_")
             print("COLUMN NAME: " + c.name)  # DEBUG
             dtype = getH5TypeStr(c.type)
             nelem = len(c)

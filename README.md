@@ -3,10 +3,9 @@
 ^PyTable is a small pure python library to work with tabular data stored as delimited 
 text files.
 
-The main objective is to provide an interface for creating a table from lists of data and write it to and read it from text files. In addition, it provides some methods for filtering columns and data, and applying operations on data, e.g. mathematical operations on all elements of a column,
-computing max and min values, etc.
+The main purpose of PyTable is to make working with tabular data easy and even "enjoyable" (if that is possible).
 
-The main purpose of PyTable is to make working with tabular data easy and even "enjoyable" (if that is possible).  
+It provides an interface for creating a table from lists of data and write it to and read it from text files. In addition, it provides some methods for filtering columns and data, and applying operations on data, e.g. mathematical operations on all elements of a column, computing max and min values, etc.
 
 # EXAMPLE
 

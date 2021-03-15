@@ -11,6 +11,51 @@ import inspect
 import time
 from datetime import datetime 
 
+def report_missing(dates, interval, verbose=True):
+    """ Given a list of dates that are supposed to be equispaced, report potential 
+        missing records.
+        
+        Args:
+            dates: list of datetime objects.
+            interval: normal spacing between records as datetime.timedelta.
+            verbose: print additional information to sys.stdout
+            
+        Returns:
+            List of potential missing records as [(date1, date2), ....].´
+    """
+    if verbose:
+        print("Checking missing records...")
+        print("   - First date: " + dates[0].strftime("%d/%m/%Y %H:%M:%S"))
+        print("   - Last date: " + dates[-1].strftime("%d/%m/%Y %H:%M:%S"))
+    
+    missing = []
+    for i in range(1, len(dates)):
+        d1 = dates[i-1]
+        d2 = dates[i]
+        dt = d2 - d1
+        if (dt > interval): 
+            sd1 = d1.strftime("%d/%m/%Y %H:%M:%S")
+            sd2 = d2.strftime("%d/%m/%Y %H:%M:%S")
+            if verbose: print("d1: \t %s \t d2: \t %s"%(sd1, sd2))
+            
+            missing.append((d1, d2))
+    
+    return missing
+            
+def get_date(sdate, fmt = "%d/%m/%Y %H:%M:%S"):
+    """ Creates a date from a string representation.
+        Just a shortcut to save a couple of lines.
+        
+        Args:
+            sdate: string that represents a date, e.g. "01/01/1970 00:00:00"
+            fmt: string that specifies the format to read a date.
+
+        Returns:
+            A datetime object.
+    """
+    d = datetime.strptime(sdate, fmt)
+    return d
+    
 def break_date(sdate: str, dsep: str = "/", hsep: str = ":", sep=" "):
     """ Given a date as a string returns 6 integers. 
         
@@ -88,7 +133,7 @@ def datetime_list(year0, year1, monthly=True, verbose=False):
     return dates
 
 
-def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", verbose=False, verbose2=False):
+def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", scale = 86400.0, verbose=False, verbose2=False):
     """ Given a list of dates as datetime, returned a list of elapsed times in days
         since start.
         
@@ -98,7 +143,9 @@ def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", verbose=False, ve
             fmt_date: format that must be used to parse start string. [OPTIONAL]
             verbose: if True, print some additional information.
             verbose2: if True, print more additional information (list of dates and times).
-        
+            scale = internally results are computed as seconds, but they are divided by this 
+                    parameter before they are returned. For example, if scale = 86400, then
+                    returned elapsed times is in days. Set to 1 to obtain elapsed time in seconds.
         Returns:
             A list of elapsed times as dates, and starting date as a datetime object.
     """
@@ -111,7 +158,7 @@ def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", verbose=False, ve
     telap = []
     for d in dates:
         delta = d - d0
-        t = delta.days + delta.seconds / 86400.0 + delta.microseconds / (86400.0 * 1.e6)
+        t = delta.days + delta.seconds / scale + delta.microseconds / 1.e6 / scale
         telap.append(t)
     
     if verbose2:
