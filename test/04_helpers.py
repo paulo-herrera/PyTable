@@ -127,7 +127,8 @@ def test07_elapsed_time():
         d.replace(minute=00, hour=00, second=00)
         dates.append(d)
     
-    telap = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True)
+    telap, t0 = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True)
+    print(telap)
     assert abs((telap[1] - telap[0]) - 1.0) < TOL
     assert abs((telap[2] - telap[1]) - 1.0) < TOL
     
@@ -137,7 +138,7 @@ def test07_elapsed_time():
         d.replace(minute=15 + i, hour=00, second=00)
         dates.append(d)
         
-    telap = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True)
+    telap, t0 = elapsed_time(dates, start = "01/01/1970 00:00:00", fmt_date = "%d/%m/%Y %H:%M:%S", verbose=True)
     assert abs((telap[1] - telap[0]) - 31.0) < TOL
     assert abs((telap[2] - telap[1]) - 28.0) < TOL
     
@@ -165,8 +166,8 @@ def test10_file_hash():
     print(str(h))
  
 
-def test11_report_ missing():
-    asser False, 'Not implemented yet'
+def test11_report_missing():
+    assert False, 'Not implemented yet'
     
 def testit(t, wait = False):
     #try:

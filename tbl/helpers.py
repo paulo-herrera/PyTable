@@ -147,7 +147,7 @@ def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", scale = 86400.0, 
                     parameter before they are returned. For example, if scale = 86400, then
                     returned elapsed times is in days. Set to 1 to obtain elapsed time in seconds.
         Returns:
-            A list of elapsed times as dates, and starting date as a datetime object.
+            A list of elapsed times as dates and starting date as a datetime object.
     """
     d0 = datetime.strptime(start, fmt_date)
     if verbose: 
