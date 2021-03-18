@@ -22,8 +22,8 @@
 # SOFTWARE.
 ###########################################################################################
 
-import setuptools                          # needed to create wheel file
-from distutils.core import setup
+from setuptools import setup                        
+#from distutils.core import setup
 
 from tbl.version import PYTABLE_VERSION
 
