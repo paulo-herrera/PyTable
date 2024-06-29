@@ -87,7 +87,7 @@ To generate distribution files (tar.gz and .whl files) in build directory:
 2. python setup.py bdist_wheel
 
 To create docs from the root directory type:
-    1. pdoc -o ./docs ./tbl/helpers.py ./tbl/ttypes.py ./tbl/column.py ./tbl/table.py
+    pdoc -d google -o ./docs ./tbl
     
 ## CONTRIBUTE:
 

@@ -9,6 +9,7 @@ import os
 import sys
 import inspect
 import time
+import re
 from datetime import datetime 
 
 def report_missing(dates, interval, verbose=True):
@@ -158,7 +159,10 @@ def elapsed_time(dates, start, fmt_date = "%d/%m/%Y %H:%M:%S", scale = 86400.0, 
     telap = []
     for d in dates:
         delta = d - d0
-        t = delta.days + delta.seconds / scale + delta.microseconds / 1.e6 / scale
+        deltat0 = delta.days
+        deltat1 = delta.seconds / scale
+        deltat2 = delta.microseconds / 1.e6 / scale
+        t = deltat0 + deltat1 + deltat2
         telap.append(t)
     
     if verbose2:
@@ -227,6 +231,9 @@ def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, enc
         
         NOTE: All content of the file is read at once, which should be ok for most files
              that are smaller than available memory. 
+        
+        TODO: Skip , in literal strings surrounded with "
+              Check codec/decode of UTF-8 with f.readlines(), it fails for Spanish characters        
     """
     if verbose: print("Reading file: " + src)
     
@@ -235,31 +242,43 @@ def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, enc
     s.close()
     
     if verbose: print("   Read %d lines"%(len(lines)))
-    
+
     if skip > 0:
         skipped = lines[0:skip]
         lines = lines[skip:]
     else:
         skipped = []
     
-    v = lines[0].split(sep)
+    #v = lines[0].split(sep)
+    v = re.split(sep, lines[0].strip())
+    
     nsep = len(v)
     if verbose: 
         print("   # separators in first line: %d  skip: %d"%(nsep, skip))
     
     values = []
-    for l in lines:
+    ln = 1
+    for il in range(len(lines)):
+        l = lines[il]
         ll = l.strip()                 #FIX LAST EMPTY LINE
         if len(ll) == 0: 
             if verbose: print("    WARNING - Skipping empty line")
             continue
             
-        v = ll.split(sep)
-        assert len(v) == nsep, "Line have different number of separators. nsep: %d  line: >>%s<<\n"%(nsep, ll)
+        #v = ll.split(sep)
+        v = re.split(sep, ll)
+        if len(v) != nsep:
+            sstr = "Line <%d> have different number of separators. len(v): %d   nsep: %d\n"%(il, len(v), nsep)
+            print(sstr)
+            assert False, ll
+        
         if strip:
             for i in range(len(v)):
                 v[i] = v[i].strip()
         values.append(v)
+        if verbose:
+            print("   Read line: %d"%ln)
+        ln = ln + 1
     
     return values, skipped
 

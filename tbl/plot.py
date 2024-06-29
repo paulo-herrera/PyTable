@@ -21,6 +21,7 @@ def plotxy(t, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, newfig=Tru
                  If len(fmt) == 1, then use the same format for all series.
                  If len(fmt) > 1, then it must satisfy len(fmt) == len(ycols)
             labels: labels to be used as titles for axes. It should satisfy len(labels) == 2.
+                    Pass labels = [None, None] to not add labels.
                     DEFAULT = ["x","y"].
             legend: if True include legend.
             newfig: If True, creates a new figure.
@@ -62,8 +63,11 @@ def plotxy(t, xcols, ycols, labels=["x", "y"], fmt=None, legend=True, newfig=Tru
         else:
             plt.plot(x.data, y.data, fmt[i], label = id)
     
-    plt.xlabel(labels[0], fontsize=16) # TODO: add option to set defaults per package
-    plt.ylabel(labels[1], fontsize=16)
+    if labels[0]:
+        plt.xlabel(labels[0], fontsize=16) # TODO: add option to set defaults per package
+    if labels[1]:
+        plt.ylabel(labels[1], fontsize=16)
+        
     if legend: plt.legend()
     
     return plt

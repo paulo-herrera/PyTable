@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/paulo/Documents/Programming/pytable')
+
 from tbl.table import Table
 from tbl.column import Column
 from tbl.helpers import timeit
@@ -234,6 +237,11 @@ def test00_convert():
     t.convert(cols=[2], types=["s"])
     t.what()
     #t.print(2)
+    
+    t  = Table("table0").addColumn("p1", ["0.0", "1.0", "2.0", "3.0"]).addColumn("t1", ["1", "2", "3", "4"])
+    t.wh()
+    t.convert(cols=[], types=["f"])
+    t.wh()
 
 def test00_convert_date():
     t  = Table("table0")
@@ -258,7 +266,7 @@ def test00_io():
     t.head()
     t.save("test_01table_io.txt")
     
-    t0 = Table.read("test_01table_io.txt")
+    t0, sk = Table.read("test_01table_io.txt")
     t0.what()
     t0.head()
     for c in t0: print(c.name)
@@ -425,6 +433,53 @@ def test00_setID():
     assert len(t[2]) == 5
     assert t[2][4] == 5
     
+def test00_rename():
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("pressure", [0.0, 1.2, 4.5, 9.2])
+    t.addColumn("temp", [0, 10, 40, 90])
+    assert t.cols[0].name == "time"
+    assert t.cols[2].name == "temp"
+    
+    t = t.rename({"time" : "time_00", "temp" : "temp_00"})
+    assert t.cols[0].name == "time_00"
+    assert t.cols[2].name == "temp_00"
+    t.tail()
+
+def test00_transpose():
+    t  = Table("original")
+    t.addColumn("c1", [11, 21, 31])
+    t.addColumn("c2", [12, 22, 32])
+    t.addColumn("c3", [13, 23, 33])
+    t.head()
+    
+    tt = t.transpose()
+    tt.head()
+    
+    t.wh()
+    tt.wh()
+
+
+def test00_uniques():
+    t  = Table("original")
+    t.addColumn("c1", [11, 21, 31])
+    t.addColumn("c2", [12, 22, 32])
+    t.addColumn("c1", [13, 23, 33], allowRepetition = True)
+    t.addColumn("c3", [13, 23, 33])
+    t.head()
+    
+    tt = t.uniques()
+    tt.head()
+
+def test00_zip():
+    t  = Table("original")
+    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
+    t.addColumn("pressure", [0.0, 1.2, 4.5, 9.2])
+    t.addColumn("temp", [0, 10, 40, 90])
+    t.head()
+    
+    lz = t.zip(cols=[0,2])
+    print(lz)
     
 def testit(t, wait = False):
     #try:
@@ -435,45 +490,53 @@ def testit(t, wait = False):
     #except:
     #    print("FAILED>> " + t.__name__)  
     
-    
-if __name__ == '__main__':
-    testit(test00_create_addColumnumn)
-    testit(test01_setname)
-    testit(test02_all)
-    testit(test03_names)
-    testit(test04_index)
-    testit(test05_hascolumn)
-    testit(test06_addColumnumn)
-    testit(test07_len)
-    testit(test00_iter)
-    testit(test00_item)
-    testit(test00_at)
-    testit(test00_pop)
-    testit(test00_remove)
-    testit(test00_select)
-    testit(test00_clone)
-    testit(test00_append)
-    testit(test00_ncols_nrows)
-    testit(test00_what)
-    testit(test00_print)
-    testit(test00_head_tail)
+
+def all_tests():
+    testit(test00_create_addColumnumn, wait=False)
+    testit(test01_setname, wait=False)
+    testit(test02_all, wait=False)
+    testit(test03_names, wait=False)
+    testit(test04_index, wait=False)
+    testit(test05_hascolumn, wait=False)
+    testit(test06_addColumnumn, wait=False)
+    testit(test07_len, wait=False)
+    testit(test00_iter, wait=False)
+    testit(test00_item, wait=False)
+    testit(test00_at, wait=False)
+    testit(test00_pop, wait=False)
+    testit(test00_remove, wait=False)
+    testit(test00_select, wait=False)
+    testit(test00_clone, wait=False)
+    testit(test00_append, wait=False)
+    testit(test00_ncols_nrows, wait=False)
+    testit(test00_what, wait=False)
+    testit(test00_print, wait=False)
+    testit(test00_head_tail, wait=False)
     #testit(test00_print_file)
     #testit(test00_write)
     #testit(test00_read, wait = True)
     #testit(test00_read_big, wait = True)
     #testit(test00_read_empty_column, wait = True)
-    testit(test00_io, wait = True)
-    testit(test00_convert)
-    testit(test00_convert_date)
-    testit(test00_toh5, wait=True)
+    testit(test00_io, wait = False)
+    testit(test00_convert, wait=True)
+    testit(test00_convert_date, wait=False)
+    testit(test00_toh5, wait=False)
     #testit(test00_plotxy, wait=False)
     testit(test00_row, wait=False)
     testit(test00_rows, wait=False)
     testit(test00_table, wait=False)
     testit(test00_table2, wait=False)
-    testit(test00_sort, wait=True)
+    testit(test00_sort, wait=False)
     testit(test00_issquare, wait=False)
     testit(test00__contains, wait=False)
     testit(test00__intersect, wait=False)
-    testit(test00_setID)
+    testit(test00_setID, wait=False)
+    testit(test00_rename, wait=False)
+    testit(test00_transpose, wait=False)
+    testit(test00_zip, wait=False)
+    testit(test00_uniques, wait=False)
+
+if __name__ == '__main__':
+    testit(test00_convert, wait=True)
+    #all_tests()
     print("*** ALL DONE ***")

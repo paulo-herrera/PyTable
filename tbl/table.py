@@ -61,14 +61,15 @@ class Table:
     
     
     def all(self):
-        """ Returns a list with the positions of all columns in this Table. 
+        """ Returns:
+                A list with the index position of all columns in this Table. 
         """
         cols = [i for i in range(len(self.cols))]
         return cols
     
    
     def append(self, other):
-        """ Appends columns of other to this table.
+        """ Appends columns of other table to *this* table.
         
             Args:
                 other: Table to append to this table.
@@ -180,7 +181,8 @@ class Table:
         if verbose: print("   Finished reading table")
         return t, src
         
-    
+        
+    # TODO: REMOVE and leave only __contains__
     def hasColumn(self, key):
         """ Given a key returns True if it is in list of columns. 
             
@@ -266,8 +268,15 @@ class Table:
             for c in self.cols:
                 if len(c) != n: return False
         return True
-        
-        
+
+# TODO       
+#    def filter(self, col, func):
+#        """ Returns a subtable of this table created by filtering all rows that do not satisfy the filtering criteria.
+#            
+#            Args:
+#                col: position of column that will be considered to apply the filter func. 
+#        """
+    
     def names(self, case = "M"):
         """ Returns a list with ids (names) of columns in this table. Depending on
             case, names are returned as lower, upper or a mix of lower and upper case.
@@ -328,7 +337,8 @@ class Table:
         """ Attempt to convert each column of this table to the specified type provided in the list fmt.
             
             Args:
-                cols: list with columns indexes that should be converted.
+                cols: list with columns indexes that should be converted. ç
+                      if empty, assumes all columns in the table should be converted.
                 types: a list with single characters that specify the new type of each column, 
                      i.e.["i", "f", "d", "s"].
                      If shorter than cols, then the last element is repeated.
@@ -340,6 +350,8 @@ class Table:
         # """
         for t in types:
             assert t in ALLOWED_TYPES, t
+        
+        if len(cols) == 0: cols = [i for i in range(self.ncols())]
         
         if len(types) < len(cols):
             missing = len(cols) - len(types)
@@ -356,9 +368,10 @@ class Table:
             nt = types[i]
             if (c.type == "s") and (nt == "d"):
                 assert fmt_date
-                c.convert(nt , fmt_date)
+                c1 = c.convert(nt , fmt_date)
             else:
-                c.convert(nt) # using the default format. 
+                c1 = c.convert(nt) # using the default format
+            self.cols[idx] = c1
         
         return self
 
@@ -388,16 +401,18 @@ class Table:
         """
         _fmt = "%" + str(columnWidth) + "s"
 
+        nchars = columnWidth * len(self.cols) 
         if writeTitle:
-            out.write("=" * 80 + "\n")
+            out.write("=" * nchars + "\n")
             out.write("Table: %s\n" % (self.name))
-            out.write("-" * 80 + "\n")
+            out.write("-" * nchars + "\n")
 
         for c in self.cols:
-            out.write( _fmt%c.name )
+            out.write( _fmt%c.name[:columnWidth] ) # TODO: Optimize
             out.write(sep)
         out.write("\n")
-        if lineBelow: out.write("-" * 80 + "\n")
+        if lineBelow: 
+            out.write("-" * nchars + "\n")
     
         nrows = maxRows if (maxRows > 0 and self.max_rows > maxRows) else self.max_rows 
         for r in range(start, nrows):
@@ -421,6 +436,7 @@ class Table:
                        If len(xcols) == 1, then all ycols are plotted against a single column. 
                        If len(xcols) > 1, then it must satisfy len(xcols) == len(ycols).
                 ycols: list of columns, e.g. [0,1,2] or ["col1", "col2"], that specifies list to be used as y-data.
+                       if ycols = [-1], then it will plot columns [1:] in the table 
                 fmt: list with strings that specify format to be used for lines and symbols.
                      If len(fmt) == 1, then use the same format for all series.
                      If len(fmt) > 1, then it must satisfy len(fmt) == len(ycols)
@@ -435,6 +451,9 @@ class Table:
                 - show figure, plt.show()
                 - save figure, plt.savefig(), etc.
         """
+        if len(ycols) == 1 and ycols[0] == -1:
+            ycols = [i for i in range(1, len(self.cols))]
+            
         p = plotxy(self, xcols, ycols, labels, fmt, legend, newfig = new)
         return p
         
@@ -442,11 +461,11 @@ class Table:
     def pop(self, key: Union[int, str]):
         """ Removes column specified by key.
         
-        Args:
-            key: int or string that specifies column.
-        
-        Returns:
-            Removed column or None if key is not in this table. 
+            Args:
+                key: int or string that specifies column.
+            
+            Returns:
+                Removed column or None if key is not in this table. 
         """
         assert not is_iterable(key), "Only single keys accepted"
         
@@ -461,7 +480,27 @@ class Table:
                 return c
         return None
 
-
+    
+    def rename(self, map_ids: dict[str, str]):
+        """ Rename columns.
+        
+            Args:
+                map_ids: dictionary {old_id: new_id}
+                if old_id is not present in this dictionary throw a warning.
+            
+            Returns:
+                This table.
+        """
+        keys = list(map_ids.keys())
+        values = list(map_ids.values())
+        old_idx = self.index(keys, verbose=True)
+        for i in range(len(old_idx)):
+            o = old_idx[i]
+            self.cols[o].name = values[i]
+        
+        return self
+        
+        
     def remove(self, keys: List[Union[int,str]]):
         """ Removes columns specified by list of keys
             
@@ -498,7 +537,7 @@ class Table:
             
             Args:
                 src: path to file.
-                sep: string that separates columns. 
+                sep: string that separates columns as a regex, e.g. \w for white space. 
                 header: line number that contains header (0 or 1, DEFAULT = 1). 
                 removeEmptyColumn: if True, check and removed columns that only have empty strings.
                                    needed for ill-formed files. [DEFAULT=False]
@@ -513,7 +552,7 @@ class Table:
                       e.g. comment lines [DEFAULT = 0]. 
                 
             Returns:
-                A new table with data read from file. 
+                A new table with data read from file and a list with skipped lines. 
         """
         assert header <= 1, header
         
@@ -547,7 +586,7 @@ class Table:
                 
         t.__setMaxRows()
         
-        return t
+        return t, skipped
     
     
     def row(self, idx):
@@ -784,6 +823,7 @@ class Table:
         if verbose: print("   Finished saving HDF5 file")
         return dst
     
+    
     def _intersect(self, args):
         """ Returns a list that is the intersection of elements in lists in args.
         """
@@ -799,9 +839,12 @@ class Table:
             
             Args:
                 args: a single or multiples lists of indices of rows that should 
-                      be included in the new table. Same as returned by Column.indexes and accepted by rows.
+                      be included in the new table. 
+                      Same as returned by Column.indexes and accepted by rows.
             Returns:
-                New table that is a subtable of this table and the list of indexes used to select rows.
+                - A New table that is a subtable of this table with rows specified by a single list
+                of indexes in args or by the intersection of multiple lists in args.
+                - And the list of indexes used to generate the subtable.
         """
         if len(args) > 1:
             idx_rows = self._intersect(args)
@@ -821,6 +864,41 @@ class Table:
             
         return t, idx_rows
 
+    
+    def transpose(self):
+        """ Creates a table that is the transpose of this table, i.e.
+            first column in new table is the header row
+            and columns >=2 are equal to the rows 1..n of the old table.
+            
+            All data is copied to the new table.
+            To make columns consistant, all columns are first converted to strings.
+        """
+        nt = Table("Transpose__" + self.name)
+        c0 = [c.name for c in self.cols]
+        nt.addColumn(name=c0[0], data = c0[1:])
+        
+        for r in range(self.nrows()):
+            row = self.row(r)
+            row = [str(e) for e in row]
+            nt.addColumn(name = row[0], data = row[1:], allowRepetition = True)
+        
+        return nt
+        
+    
+    def uniques(self):
+        """ Generates a new table by removing columns that have the same name.
+            Only first column with a given name is preserved.
+            Data in columns included in new table is NOT copied.
+            
+            Returns:
+                a new table with columns that have different names.
+        """
+        t = Table("UniqueIDS__" + self.name)
+        for c in self.cols:
+            if c.name not in t:
+                t.addColumn(c.name, c.data)
+        return t
+        
     
     def wait(self):
         """ Wait for user input before continuing.
@@ -875,6 +953,33 @@ class Table:
             if len(c) > self.max_rows: self.max_rows = len(c)
     
     
+    def zip(self, cols: List[Union[int,str]]) -> List[List[str]]:
+        """ Returns a list of tuples.
+        
+            The element r of the returned list corresponds to the tuple:
+            (cols[0][r], cols[1][r], ...., cols[n][r]) 
+            
+            Parameters:
+                cols: list of ints or strings.
+            
+            Returns:
+                a list of tuples.
+        """       
+        lz = []
+        for r in range(self.nrows()):
+            tr = []
+            for c in cols:
+                col = self.__getitem__(c)
+                if col:
+                    e = col[r]
+                    tr.append(e)
+                else:
+                    print("WARNING - Key is not present in table: " + str(k))
+            lz.append(tuple(tr))
+        
+        return lz
+        
+    
     def __str__(self):
         s = "Table: %s  #columns: %d"%(self.name, len(self.cols))
         return s
@@ -891,6 +996,7 @@ class Table:
                 True or False.
         """
         return self.hasColumn(c)
+        
         
     def __iter__(self):
         """ Provides an iterator interface to allow looping over columns.

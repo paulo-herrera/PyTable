@@ -78,6 +78,8 @@ class Column:
         elif self.type and len(data) > 0:           # have to check if types match
             ntype = getType(data[0])
             assert(ntype == self.type)
+        elif len(data) == 0:
+            self.type = None
         elif not self.type and ctype:
             ntype = getType(ctype)
             self.type = ntype
@@ -267,6 +269,8 @@ class Column:
     def isBlank(self):
         """ Returns true if all elements in this column are blank or empty strings.
         """
+        if len(self.data) == 0: return True
+        
         assert self.type == "s"
         ns = self.reduce(func = lambda i, e, result: len(e.strip()) + result, result = 0)
         return ns == 0    
@@ -477,9 +481,9 @@ class Column:
         min   = self.reduce(func = lambda i, v, result: result if result < v else v, result = sys.float_info.max)
         nvals = len(self.data)
         sum   = self.reduce(func = lambda i, v, result: result + v, result = 0.0)
-        mean  = sum / nvals
+        mean  = sum / nvals if nvals > 0 else 0.0
         ss    = self.reduce(func = lambda i, v, result: result + (v - mean)*(v - mean), result = 0.0)
-        stddev= math.sqrt(ss / nvals)
+        stddev= math.sqrt(ss / nvals) if nvals > 0 else 0.0
         
         if verbose:
             __fmt = "Column<< %s >> -- #values: %d \t min: %g \t max: %g \t mean: %g \t stddev: %g"
@@ -558,7 +562,7 @@ class Column:
                 where XXXX=reference date formated as d_m_Y__H_M_S. 
         """
         assert self.type == "d"
-        telap, d0 = elapsed_time(self.data, start, fmt_date, verbose)
+        telap, d0 = elapsed_time(self.data, start = start, fmt_date = fmt_date, scale = 86400.0, verbose = verbose, verbose2 = False)
         id = "telap_" + d0.strftime("%d_%m_%Y__%H_%M_%S")
         c = Column(id).addData(telap)
         return c
