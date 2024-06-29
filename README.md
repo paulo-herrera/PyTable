@@ -36,7 +36,9 @@ python setup.py install
 # DOCUMENTATION
 
 This file together with the included examples in the examples directory in the
-source tree provide enough information to start using the package.
+source tree provide enough information to start using the package. 
+
+There is also reference documentation for all classes and methods in the package in the docs folder distributed with the sources.
 
 # REQUIREMENTS
 

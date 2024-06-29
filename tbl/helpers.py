@@ -1,3 +1,26 @@
+######################################################################################
+# MIT License
+# 
+# Copyright (c) 2010-2024 Paulo A. Herrera
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+######################################################################################
 __docformat__ = "google"
 
 """ Helper functions commonly used when processing data stored in multiple text files.
@@ -11,6 +34,7 @@ import inspect
 import time
 import re
 from datetime import datetime 
+
 
 def report_missing(dates, interval, verbose=True):
     """ Given a list of dates that are supposed to be equispaced, report potential 
@@ -43,6 +67,7 @@ def report_missing(dates, interval, verbose=True):
     
     return missing
             
+
 def get_date(sdate, fmt = "%d/%m/%Y %H:%M:%S"):
     """ Creates a date from a string representation.
         Just a shortcut to save a couple of lines.
@@ -57,6 +82,7 @@ def get_date(sdate, fmt = "%d/%m/%Y %H:%M:%S"):
     d = datetime.strptime(sdate, fmt)
     return d
     
+
 def break_date(sdate: str, dsep: str = "/", hsep: str = ":", sep=" "):
     """ Given a date as a string returns 6 integers. 
         
@@ -428,6 +454,7 @@ def walker(fpath: str, ffilter = lambda x: True, verbose = False, level = 0, lfi
             
         return lfiles
 
+
 # TODO: ADD TEST
 def dict_from_txt(src, sep = ",", converter = None, verbose = False, skip = 0, encoding = "utf-8"):
     """ Reads a dictionary {key:value} from text file.
@@ -452,6 +479,7 @@ def dict_from_txt(src, sep = ",", converter = None, verbose = False, skip = 0, e
         d[k] = v
     
     return d
+
     
 def file_hash(src: str, method="sha1", verbose = False):
     """ Compute the SHA1 hash of a file, 
