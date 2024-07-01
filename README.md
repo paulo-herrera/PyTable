@@ -42,26 +42,92 @@ and a format that defines how data in the column must be pretty-printed.
 
 A **Table** has a name and a list of columns.
 
+
 The usual workflow involves creating or reading a Table, i.e.
 
 ```
+from tbl import Table
+
+# ALTERNATIVE 1
 t = Table.read(src=path-to-file, sep=",")  # sep can be any regex
-# or
-t = Table("Table1").add("col1", [1,2,3])
+# The read table has all columns stored as strings, so they need to be 
+# converted to the proper type before use. For example, for a table that 
+# has 2 columns of integers and one column of strings
+t.convert(cols = [0,1,2], types=["i","i","s"])
+
+# It is usual that all columns have the same type, for e.g. floats
+t.convert(cols=[], types=["f"]) #or, shorter
+t.convert([],["f"])
+
+# ALTERNATIVE 2
+# alternatively, one can create a table from scratch
+t  = Table("table0")
+t.add("time", [2.0, 1.0, 4.0, 3.0])      # types are assigned automatically when Columns are added manually
+t.add("temp", [0, 10, 40, 90])
+t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+t.add("ec", [0, 25, 70, 130])  
+
+
+# After the table has been created, it is a good idea to check what is stored on it
+t.what()  # prints a summary of the columns in the table
+t.wait()  # this line will stop the script and ask to press ENTER
+
+# that should print something like this
+#================================================================================
+#Table: table0
+#--------------------------------------------------------------------------------
+#Col[ Pos]:                 Name 	 Type< 	    #Rows 
+#--------------------------------------------------------------------------------
+#Col[0000]:                 time 	   f< 	 00000004 
+#Col[0001]:                 temp 	   i< 	 00000004 
+#Col[0002]:             pressure 	   f< 	 00000004 
+#Col[0003]:                   ec 	   i< 	 00000004 
+#================================================================================
 ```
 
 do something with the stored data, e.g. sort/filter/transform, and write the new table
-to a file
+to a file.
 
 ```
 t.save(dst=path-to-file, sep=",")
 ```
 
+The easiest way to modified data is using a direct access, e.g.
+
+```
+# Change the value of the second element of the third column
+t[2][1] =   1.2 # indexing in Python starts at 0, so t[2] is the third column
+
+# or, to make self-explanatory
+t["Pressure"][1] = 1.2
+
+# if multiple values must be changed, if could be easier,
+c = t["Pressure"]  # c is a reference to the data stored in t, so any changes applied to both objects
+c[1] = 1.2
+c[2] = 2.0
+c[3] = 2.4
+
+# after modifying values is useful to print the table, 3 ways
+t.head(10)  #prints first 10 lines, useful for long tables
+t.tail(10)  #prints last 10 lines
+t.print()   #prints full table to sys.stdout, check options in docs
+```
+
+
 
 # INSTALLATION
 
-Go to the source directory and type:
-python setup.py install
+The recommended way to use is to set the PYTHONPATH dynamically within the script,
+e.g. add these two lines to the beginning of the script
+
+```
+import sys
+sys.path.append('/home/paulo/Documents/Programming/pytable')
+```
+
+Alternatively, the package can be installed in the default Python site-package:
+Go to the source directory and type: ```python setup.py install```
+
 
 # DOCUMENTATION
 
