@@ -35,35 +35,49 @@ import sys
 import inspect
 from typing import List, Union, Callable
 
-# TODO: add shortcuts for cmd line use, e.g. a = addColumn, t=tail, h=head, s=save, r=Read 
 # TODO: change desc to attr as for Column
 # TODO: add setColumn() so we can change Column in place and make sure all properties are transferred and/or set propertly
-# TODO: add type and units to header when writing and read it back 
+# TODO: collect returning (i,j,e) + creating table from (i,j,e) (aka subtable)
+# TODO: implement map(fun(i,j,e) -> r)
 class Table:
-    """ Class to store a table as a collection of Columns. """
+    """ Class to store a table as a collection of Columns. 
+    """
     
     def __init__(self, name):
         self.name = name
+        """ Name for this table. It can be accessed for reading/writing directly, e.g.
+            ```
+                t.name = "TheTable"
+                tn = t.name
+            ```
+        """
+        
         self.cols = []
+        """ List of columns in this table. It should be safe to access it directly for reading. """
+        
         self.max_rows = -1
-        self.desc = None   # some extra description that can be useful to identify source of data.
+        """ Max. number of rows in this table. """
+        
+        self.desc = None  
+        """ Additional description that may be useful to identify data, e.g. origin, source, etc. """
     
     
-    def addColumn(self, name: str = None, data = None, allowRepetition = False):
-        """ Adds a column to this table.
+    def add(self, name: str = None, data = None, allowRepetition = False):
+        """ Adds a column to this Table.
             
             Args:
                 name: column id. If not passed, then column is assigned a generic id,
                       e.g col1
-                data: a list of data or Column to be added as data to the new column. 
-                allowRepetition: if True, columns with similar name can be stored in this table.
+                data: a list or a Column. 
+                allowRepetition: if True, columns with similar name can be stored in this table. 
+                                 if False, an assert error is raised.
             
             Returns:
                 This table.
         """
         name = name if name else "col%02d"%len(self.cols)
         
-        if self.hasColumn(name) and not allowRepetition:
+        if self.has(name) and not allowRepetition:
             assert False, "name is already in table: " + name
         
         if data and (isinstance(data, Column)): # and data == None:
@@ -83,6 +97,30 @@ class Table:
         return self
     
     
+    def addID(self, gen = None):
+        """ Adds a first column with a unique identifier (default: row number) for each row (record) in 
+            this Table. 
+            
+            Args:
+                gen: id generator, gen(row) -> id. Default: None, so id = row number.
+            
+            Returns:
+                This Table.
+        """
+        self.__setMaxRows()
+        _nrows = self.nrows()
+        
+        if not gen: gen = lambda r: r
+        
+        id = [gen(i) for i in range(_nrows)]
+        c = Column("id").addData(id)
+        
+        if self.has("id"): self.pop("id")
+        self.cols = [c] + self.cols
+        
+        return self
+        
+        
     def all(self):
         """ Returns:
                 A list with the index position of all columns in this Table. 
@@ -92,7 +130,10 @@ class Table:
     
    
     def append(self, other):
-        """ Appends columns of other table to *this* table.
+        """ Appends columns of other table to *this* table, 
+            i.e. makes the columns of this table longer by appending data 
+            from the other table.
+            Both tables must have the same number of columns.
         
             Args:
                 other: Table to append to this table.
@@ -100,8 +141,8 @@ class Table:
             Returns:
                 This table with appended values.
             
-            Note: If you need to get a new table by merging this and other, then
-                  clone this table first and then append other.
+            **Note:** If you need to get a new table by merging this and other, 
+                      clone this table first and then append other.
         """
         assert (isinstance(other,Table))
         assert len(self) == len(other)
@@ -126,14 +167,14 @@ class Table:
                 A list of columns.
         """
         assert is_iterable(keys)
-        cols = []
+        cols_ = []
         for k in keys:
             c = self.__getitem__(k)
             if c:
-                cols.append(c)
+                cols_.append(c)
             else:
                 print("WARNING - Key is not present in table: " + str(k))
-        return cols
+        return cols_
 
    
     def clone(self, shallow = True, newName = None):
@@ -152,8 +193,9 @@ class Table:
         t = Table(newName)
         for col in self.cols:
             ncol = col if shallow else col.clone() 
-            t.addColumn(ncol.name, ncol)
+            t.add(ncol.name, ncol)
         return t
+
 
     @staticmethod
     def fromH5(src, root = None, verbose = False):
@@ -198,15 +240,14 @@ class Table:
                 data = [e.decode("utf-8") for e in a]
             else:
                 data = a.tolist()
-            t.addColumn(id, data)
+            t.add(id, data)
             
         h5.close()
         if verbose: print("   Finished reading table")
         return t, src
         
         
-    # TODO: REMOVE and leave only __contains__
-    def hasColumn(self, key):
+    def has(self, key):
         """ Given a key returns True if it is in list of columns. 
             
             NOTE: keys are compared always as lower case. Thus, 
@@ -283,6 +324,7 @@ class Table:
                 pass   
         return pos
 
+
     def isSquare(self):
         """ Returns True if all columns have the same number of elements.
         """
@@ -318,13 +360,13 @@ class Table:
 
 
     def ncols(self):
-        """ Returns the number of cols in this table. Similar to __len__.
+        """ Returns the number of columns in this Table. Similar to __len__.
         """
         return len(self.cols)
 
 
     def nrows(self):
-        """ Returns the maximum number of rows in this table.
+        """ Returns the maximum number of rows in this Table.
         """
         return self.max_rows
 
@@ -341,11 +383,11 @@ class Table:
                 fmt_string: format used to print strings.
             
             Returns:
-                This table.
+                This Table.
             
             NOTE: It is also possible to set the format of individual columns by calling
                   col.setFormatStr(fmt).
-                  Formats are only used to convert TO string, not to convert TO STRING.
+                  Formats are only used to convert TO string, not to convert FROM STRING.
         """
         for c in self.cols:
             if c.type == "i": c.setFormatStr(fmt_int)
@@ -368,7 +410,7 @@ class Table:
                 fmt_date: format used to convert strings to datetime objects.
                           Only needed if converting to dates.
             Returns:
-                This table.
+                This Table.
                 
         # """
         for t in types:
@@ -482,7 +524,7 @@ class Table:
         
         
     def pop(self, key: Union[int, str]):
-        """ Removes column specified by key.
+        """ Removes column specified by key. For lists of keys, use remove.
         
             Args:
                 key: int or string that specifies column.
@@ -492,7 +534,7 @@ class Table:
         """
         assert not is_iterable(key), "Only single keys accepted"
         
-        if self.hasColumn(key):
+        if self.has(key):
             if isinstance(key, int):
                 c = self.cols.pop(key)
                 return c
@@ -525,7 +567,7 @@ class Table:
         
         
     def remove(self, keys: List[Union[int,str]]):
-        """ Removes columns specified by list of keys
+        """ Removes columns specified by list of keys. Similar to pop but for lists.
             
             Args:
                 keys: List of ints or strings that specify columns that should be removed.
@@ -546,7 +588,7 @@ class Table:
         
         removed = []
         for idx in idxs:
-            #assert self.hasColumn(idx), "Column[%d] not in table."%(idx)
+            #assert self.has(idx), "Column[%d] not in table."%(idx)
             c = self.cols.pop(idx)
             removed.append(c)
         
@@ -564,9 +606,7 @@ class Table:
                 header: line number that contains header (0 or 1, DEFAULT = 1). 
                 removeEmptyColumn: if True, check and removed columns that only have empty strings.
                                    needed for ill-formed files. [DEFAULT=False]
-                                   Alternative is modifying the files before reading them,
-                                   which could be faster. 
-                                   For large tables, it may be cheaper import them, 
+                                   For large tables, it may be faster to import them, 
                                    and remove specific columns later.
                 verbose: if True, prints some additional information.
                 encoding: string that indicates file encoding.
@@ -578,7 +618,7 @@ class Table:
                 A new table with data read from file and a list with skipped lines. 
         """
         assert header <= 1, header
-        
+
         if verbose:
             print("Reading table from: ")
             print("   " + src)
@@ -593,7 +633,7 @@ class Table:
         
         h = strs[0] if header == 1 else ["col%04d"%c for c in range(ncols)]
         t = Table(name = src)
-        for hh in h: t.addColumn(name = hh, data=[], allowRepetition=allowRepetition)
+        for hh in h: t.add(name = hh, data=[], allowRepetition=allowRepetition)
         
         for c in range(ncols):
             cdata = []
@@ -613,10 +653,10 @@ class Table:
     
     
     def row(self, idx):
-        """ Returns a list with elements of all columns at position idx.
+        """ Returns a list with elements at position idx (row) in all columns of this Table.
             
             Args:
-                idx: int that specifies position of row.
+                idx: int that specifies position in each column (row).
             
             Returns:
                 Row at position idx.
@@ -632,7 +672,9 @@ class Table:
     
     
     def rows(self, idx_rows):
-        """ Returns a list with elements of all columns that are at position n.
+        """ Returns a list with elements of all columns that are at positions in idx_rows.
+            Elements of each column are stored in a tuple within the returned list.
+            
             Args:
                 idx_rows: list of rows as ints, e.g. [0,1,2,3].
             
@@ -652,7 +694,8 @@ class Table:
     
     
     def save(self, dst: str, sep = ",", columnWidth = 10, missing = "-", verbose = False):
-        """ Saves table to file. Similar to print, but with default values.
+        """ Saves this Table to a file. Similar to print, but with default values.
+        
             Args:
                 dst: path to destination file.
                 sep: string used as separator between columns.
@@ -671,6 +714,7 @@ class Table:
                        columnWidth = columnWidth, missing = missing, \
                        verbose = verbose, lineBelow=False)
         sdst.close()
+    
     
     def select(self, filter: Callable[[int, str], bool]): # -> Table
         """ Returns a new table with columns that satisfy the filter criteria.
@@ -691,29 +735,8 @@ class Table:
         for i in range(len(self.cols)):
             c = self.cols[i]
             if filter(i, c.name):
-                sel.addColumn(c.name, c.data)
+                sel.add(c.name, c.data)
         return sel
-    
-    
-    def setID(self):
-        """ Sets a column with a unique identifier for each row (record) in the this
-            Table. 
-            
-            Returns:
-                This table.
-        """
-        self.__setMaxRows()
-        
-        _nrows = self.nrows()
-        id = [i + 1 for i in range(_nrows)]
-        c = Column("id").addData(id)
-        
-        if self.hasColumn("id"):
-            self.__getitem__("id").data = id
-        else:
-            self.cols.append(c)
-        
-        return self
     
      
     def setName(self, name: str):
@@ -738,7 +761,7 @@ class Table:
                 reverse: if True, sort table in descending order.
         
             Returns:
-                This table with columns sorted by key.
+                This table with rows sorted by key.
         """
         self.__setMaxRows()
         assert self.isSquare(), "Only implemented for square tables"
@@ -882,7 +905,7 @@ class Table:
             for r in rows:
                 d = r[i]
                 data.append(d)
-            t.addColumn(self.cols[i].name, data)
+            t.add(self.cols[i].name, data)
             t.cols[i].like(self.cols[i]) 
             
         return t, idx_rows
@@ -898,12 +921,12 @@ class Table:
         """
         nt = Table("Transpose__" + self.name)
         c0 = [c.name for c in self.cols]
-        nt.addColumn(name=c0[0], data = c0[1:])
+        nt.add(name=c0[0], data = c0[1:])
         
         for r in range(self.nrows()):
             row = self.row(r)
             row = [str(e) for e in row]
-            nt.addColumn(name = row[0], data = row[1:], allowRepetition = True)
+            nt.add(name = row[0], data = row[1:], allowRepetition = True)
         
         return nt
         
@@ -919,7 +942,7 @@ class Table:
         t = Table("UniqueIDS__" + self.name)
         for c in self.cols:
             if c.name not in t:
-                t.addColumn(c.name, c.data)
+                t.add(c.name, c.data)
         return t
         
     
@@ -1004,47 +1027,73 @@ class Table:
         
     
     def __str__(self):
+        """ Implements str(t) method.
+        """
         s = "Table: %s  #columns: %d"%(self.name, len(self.cols))
         return s
     
     
     def __contains__(self, c: Union[int, str]) -> bool:
         """ Returns true if column c is in this table.
-            Similar to hasColumn. 
+            This allows,
+            
+            ```
+                "Column1" in t
+            ```
+            
+            Similar to t.has("Column1"). 
             
             Args: 
                 c: int or string.
              
             Returns:
                 True or False.
+            @public
         """
-        return self.hasColumn(c)
+        return self.has(c)
         
         
     def __iter__(self):
         """ Provides an iterator interface to allow looping over columns.
+            This allows,
+            
+            ```
+            for c in t: <<do whatever with column c>>
+            ```
+            @public
         """
         for c in self.cols:
             yield c
     
     
     def __len__(self) -> int:
-        """ Returns number of columns in this table.
+        """ Returns number of columns in this table. This allows,
+            ```
+            ncolumns = len(t)
+            ```
+            Similar to t.ncols().
+            @public
         """
         return len(self.cols)
     
     
     def __getitem__(self, key):
         """ Returns column that corresponds to key, which can a string or int.
+            This allows,
+            
+            ```
+                c = t[0] #or
+                c = t["Time"]
+            ```
             
             Returns:
                 The column that corresponds to key or None if not present. 
                 
-            NOTE: Using an int as key should be faster.
+            @public
         """
         assert not is_iterable(key), "Only single keys accepted"
         
-        if self.hasColumn(key):
+        if self.has(key):
             if isinstance(key, int):
                 return self.cols[key]
             elif isinstance(key, str):
@@ -1052,7 +1101,7 @@ class Table:
                 return self.cols[idx[0]]
         else:
             None
-
+    
 
 if __name__ == "__main__":
     pass

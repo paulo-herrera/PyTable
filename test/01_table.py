@@ -5,24 +5,23 @@ from tbl.table import Table
 from tbl.column import Column
 from tbl.helpers import timeit
 
-def test00_create_addColumnumn():
-    t = Table("table0").addColumn("time", [0.0, 0.1, 0.2, 0.3])
-    t.addColumn("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
+def test00_create_add():
+    t = Table("table0").add("time", [0.0, 0.1, 0.2, 0.3])
+    t.add("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
     print(t)
 
 def test01_setname():
-    t = Table("table0").addColumn("time", [0.0, 0.0]).addColumn("pressure", [0.0, 0.0])
-    t.setName("ttable1")
+    t = Table("table0").add("time", [0.0, 0.1]).setName("ttable1")
     assert t.name == "ttable1" 
 
 def test02_all():
-    t = Table("table0").addColumn("time", [0.0, 0.0, 0.0]).addColumn("pressure", [0.0, 1.2, 0.0])
+    t = Table("table0").add("time", [0.0, 0.1, 0.2]).add("pressure", [0.0, 1.2, 0.0])
     all = t.all()
     assert len(all) == 2
     assert all[1] == 1
     
 def test03_names():
-    t = Table("table0").addColumn("time", [0.0, 0.0, 0.3]).addColumn("pressure", [0.0, 1.2, 0.0])
+    t = Table("table0").add("time", [0.0, 0.15, 0.3]).add("pressure", [0.0, 1.2, 0.0])
     ids = t.names() 
     assert len(ids) == 2
     assert ids[1] == "pressure"
@@ -33,8 +32,8 @@ def test03_names():
     
 def test04_index():
     t = Table("table0")
-    t.addColumn("time", [0.0, 0.1, 0.2, 0.3])
-    t.addColumn("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
+    t.add("time", [0.0, 0.1, 0.2, 0.3])
+    t.add("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
 
     id0 = t.index(["time"])
     print(id0)
@@ -44,50 +43,50 @@ def test04_index():
     id1 = t.index(["pressure"])
     assert id1[0] == 1
 
-def test05_hascolumn():
-    t = Table("table0").addColumn("t", [0.0, 0.1]).addColumn("p", [0.1, 1.2])
-    a = t.hasColumn("t")
+def test05_has():
+    t = Table("table0").add("t", [0.0, 0.1]).add("p", [0.1, 1.2])
+    a = t.has("t")
     assert a
     
-    a = t.hasColumn("q")
+    a = t.has("q")
     assert not a
     
-    a = t.hasColumn(1)
+    a = t.has(1)
     assert a
     
-    a = t.hasColumn(2)
+    a = t.has(2)
     assert not a
 
-def test06_addColumnumn():
+def test06_add():
     t = Table("table0")
-    t.addColumn("t", [0.0, 0.1])
-    t.addColumn("p")
+    t.add("t", [0.0, 0.1])
+    t.add("p")
     c = Column("col").addData([1,2,3])
-    t.addColumn(c.name, c)
+    t.add(c.name, c)
     
     try:
-        t.addColumn("t", allowRepetition=False)
+        t.add("t", allowRepetition=False)
         assert False
     except:
         assert True
         
-    t.addColumn(data = [1, 2, 3]) # no name
+    t.add(data = [1, 2, 3]) # no name
     c = t[3]
     c.name == "col03", c.name
     
     
 def test07_len():
-    t = Table("table0").addColumn("time", [0.0, 0.0, 0.0, 0.3]).addColumn("pressure", [0.0, 1.2, 0.0, 0.0, 0.0])
+    t = Table("table0").add("time", [0.0, 0.0, 0.0, 0.3]).add("pressure", [0.0, 1.2, 0.0, 0.0, 0.0])
     assert len(t) == 2
 
-def test00_iter():
-    t = Table("table0").addColumn("time", [0.0, 0.0]).addColumn("pressure", [0.0, 1.2])
+def test08_iter():
+    t = Table("table0").add("time", [0.0, 0.0]).add("pressure", [0.0, 1.2])
     for c in t: 
         #print(c)
         pass
 
-def test00_item():
-    t = Table("table0").addColumn("time", [0.0, 0.0]).addColumn("pressure", [0.0, 1.2])
+def test09_item():
+    t = Table("table0").add("time", [0.0, 0.0]).add("pressure", [0.0, 1.2])
     c = t[0]
     assert c.name == "time"
     
@@ -97,14 +96,14 @@ def test00_item():
     c = t[5]
     assert not c
 
-def test00_at():
-    t = Table("table0").addColumn("c1", [0.0, 0.0]).addColumn("c2", [0.0, 1.2]).addColumn("c3", [1, 2])
+def test10_at():
+    t = Table("table0").add("c1", [0.0, 0.0]).add("c2", [0.0, 1.2]).add("c3", [1, 2])
     c = t.at([0,2])
     assert c[0].name == "c1"
     assert c[1].name == "c3"
  
-def test00_pop():
-    t = Table("table0").addColumn("c1", [0.0, 0.0]).addColumn("c2", [0.0, 1.2]).addColumn("c3", [1, 2])
+def test11_pop():
+    t = Table("table0").add("c1", [0.0, 0.0]).add("c2", [0.0, 1.2]).add("c3", [1, 2])
     assert len(t) == 3
     
     c = t.pop("c2")
@@ -115,18 +114,18 @@ def test00_pop():
     assert len(t) == 1
     assert c.name == "c1"
     
-def test00_remove():
+def test12_remove():
     t = Table("table0")
     for i in range(25):
-        t.addColumn(data=[1, 2, 3, 4, 5])
+        t.add(data=[1, 2, 3, 4, 5])
     assert len(t) == 25
     
     cols = t.remove([1, 5, 10, 14])
     assert len(t) == 21
     #for c in cols: print(c)
     
-def test00_select():
-    t = Table("table0").addColumn("p1", [0.0, 0.0]).addColumn("t1", [0.0, 1.2]).addColumn("e1", [1, 2])
+def test13_select():
+    t = Table("table0").add("p1", [0.0, 0.0]).add("t1", [0.0, 1.2]).add("e1", [1, 2])
     t2 = t.select(filter=lambda i, name: i <= 1)
     assert len(t2) == 2
     
@@ -134,8 +133,8 @@ def test00_select():
     assert len(t2) == 1
     assert t[0].name == "p1"
 
-def test00_clone():
-    t = Table("table0").addColumn("p1", [0.0, 0.0]).addColumn("t1", [0.0, 1.2]).addColumn("e1", [1, 2])
+def test14_clone():
+    t = Table("table0").add("p1", [0.0, 0.0]).add("t1", [0.0, 1.2]).add("e1", [1, 2])
     t2 = t.clone(shallow=True)
     assert t.name + "(Copy)" == t2.name
     assert len(t2) == len(t)
@@ -145,9 +144,9 @@ def test00_clone():
     assert len(t2) == len(t)
     # check deep copy
 
-def test00_append():
-    t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2]).addColumn("e1", ['a', 'b'])
-    t2 = Table("table1").addColumn("p1", [2.0, 3.0]).addColumn("t1", [3, 4]).addColumn("e1", ['c', 'd'])
+def test15_append():
+    t  = Table("table0").add("p1", [0.0, 1.0]).add("t1", [1, 2]).add("e1", ['a', 'b'])
+    t2 = Table("table1").add("p1", [2.0, 3.0]).add("t1", [3, 4]).add("e1", ['c', 'd'])
     assert t.nrows() == 2
     assert t.ncols() == 3
     
@@ -158,17 +157,17 @@ def test00_append():
     assert t[2][2] == 'c'
     assert t[1][2] == 3
 
-def test00_ncols_nrows():
-    t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
+def test16_ncols_nrows():
+    t  = Table("table0").add("p1", [0.0, 1.0]).add("t1", [1, 2, 3, 4]).add("e1", ['a', 'b'])
     assert t.nrows() == 4
     assert t.ncols() == 3
 
-def test00_what():
-    t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
+def test17_what():
+    t  = Table("table0").add("p1", [0.0, 1.0]).add("t1", [1, 2, 3, 4]).add("e1", ['a', 'b'])
     t.what()
 
-def test00_print():
-    t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
+def test18_print():
+    t  = Table("table0").add("p1", [0.0, 1.0]).add("t1", [1, 2, 3, 4]).add("e1", ['a', 'b'])
     print("DEFAULT FORMATTING")
     t.print()
     
@@ -176,43 +175,43 @@ def test00_print():
     t.setFormatStr(fmt_int="%04d", fmt_float="%4.2f", fmt_date=None, fmt_str="%10s")
     t.print()
 
-def test00_head_tail():
+def test19_head_tail():
     t  = Table("table0")
     d1 = [i for i in range(99)]
     d2 = [i*1.0 for i in range(99)]
-    t.addColumn("p1", d1)
-    t.addColumn("t1", d2)
+    t.add("p1", d1)
+    t.add("t1", d2)
     
     t.head(5)
     
     t.tail(5)
     
-def test00_print_file():
-    t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
+def test20_print_file():
+    t  = Table("table0").add("p1", [0.0, 1.0]).add("t1", [1, 2, 3, 4]).add("e1", ['a', 'b'])
     
     t.setFormatStr(fmt_int="%04d", fmt_float="%4.2f", fmt_date=None, fmt_str="%10s")
     dst = open("test_01table_print_file.txt", "w")
     t.print(sep=",", out = dst, verbose = True).close()
 
-def test00_write():
-    t  = Table("table0").addColumn("p1", [0.0, 1.0]).addColumn("t1", [1, 2, 3, 4]).addColumn("e1", ['a', 'b'])
+def test21_write():
+    t  = Table("table0").add("p1", [0.0, 1.0]).add("t1", [1, 2, 3, 4]).add("e1", ['a', 'b'])
     t.save("test_01table_write.txt", verbose = True)
 
-def test00_read():
+def test22_read():
     src= "./data/dates1.csv"
-    t = Table.read(src, sep=",", header=1, verbose=True)
+    t, sk = Table.read(src, sep=",", header=1, verbose=True)
     t.what()
     t.print()
 
-def test00_read_big():
+def test23_read_big():
     src= "./data/bigtable.csv"
-    t = Table.read(src, header=0, verbose=True)
+    t,sk = Table.read(src, header=0, verbose=True)
     #t.what()
     t.print(maxRows=15)
 
-def test00_read_empty_column():
+def test24_read_empty_column():
     src= "./data/dates3.csv"
-    t = Table.read(src, sep=",", header=1, verbose=True)
+    t, sk = Table.read(src, sep=",", header=1, verbose=True, removeEmptyColumn=False, skip=1)
     assert len(t) == 4
     t.what()
     #t.print()
@@ -220,12 +219,12 @@ def test00_read_empty_column():
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     print("AFTER REMOVING EMPTY COLUMNS")
     print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-    t = Table.read(src, sep=",", header=1, verbose=True, removeEmptyColumn=True)
+    t, sk = Table.read(src, sep=",", header=1, verbose=True, removeEmptyColumn=True, skip=1)
     assert len(t) == 2
     t.what()
 
-def test00_convert():
-    t  = Table("table0").addColumn("p1", ["0.0", "1.0"]).addColumn("t1", ["1", "2", "3", "4"]).addColumn("e1", ['a', 'b'])
+def test25_convert():
+    t  = Table("table0").add("p1", ["0.0", "1.0"]).add("t1", ["1", "2", "3", "4"]).add("e1", ['a', 'b'])
     #t.what()
     
     t.convert(cols=[0, 1], types=["f", "i"])
@@ -238,15 +237,15 @@ def test00_convert():
     t.what()
     #t.print(2)
     
-    t  = Table("table0").addColumn("p1", ["0.0", "1.0", "2.0", "3.0"]).addColumn("t1", ["1", "2", "3", "4"])
+    t  = Table("table0").add("p1", ["0.0", "1.0", "2.0", "3.0"]).add("t1", ["1", "2", "3", "4"])
     t.wh()
     t.convert(cols=[], types=["f"])
     t.wh()
 
-def test00_convert_date():
+def test26_convert_date():
     t  = Table("table0")
-    t.addColumn("d1", ["01.01.1900", "02.01.1900"])
-    t.addColumn("d2", ["01/01/1900 00:00:00", "02/01/1900 00:15:00"])
+    t.add("d1", ["01.01.1900", "02.01.1900"])
+    t.add("d2", ["01/01/1900 00:00:00", "02/01/1900 00:15:00"])
     t.what()
     
     t.setFormatStr("%d","%g","%d.%m.%Y","%s") # only used for printing
@@ -256,11 +255,11 @@ def test00_convert_date():
     t.what()
     t.head(2)
     
-def test00_io():
+def test27_io():
     t  = Table("table0")
-    t.addColumn("p1", [0.0, 1.0])
-    t.addColumn("t1", [1, 2, 3, 4])
-    t.addColumn("e1", ['a', 'b'])
+    t.add("p1", [0.0, 1.0])
+    t.add("t1", [1, 2, 3, 4])
+    t.add("e1", ['a', 'b'])
     assert len(t) == 3, "len(t): " + str(len(t))
     t.what()
     t.head()
@@ -272,13 +271,13 @@ def test00_io():
     for c in t0: print(c.name)
     assert len(t0) == 3, "len(t0): " + str(len(t0)) # trailing separator
     
-def test00_toh5():
+def test28_toh5():
     fpath = "test_01table_toh5.h5"
     t  = Table("table0")
-    t.addColumn("floats", [0.0, 1.0])
-    t.addColumn("ints", [1, 2, 3, 4])
-    t.addColumn("strings", ['a', 'b'])
-    t.addColumn("dates", ['01/01/1970 00:00:00', '01/03/1980 00:15:00'])
+    t.add("floats", [0.0, 1.0])
+    t.add("ints", [1, 2, 3, 4])
+    t.add("strings", ['a', 'b'])
+    t.add("dates", ['01/01/1970 00:00:00', '01/03/1980 00:15:00'])
     t.convert([3], ["d"], fmt_date = "%d/%m/%Y %H:%M:%S")
     t.setFormatStr("%d", "%g", "%d/%m/%Y %H:%M:%S", "%s")
     t.toH5(dst=fpath, root=None, append=False, verbose=True, fmt_date="%d/%m/%Y %H:%M:%S")
@@ -287,12 +286,12 @@ def test00_toh5():
     t, fpath = t.fromH5(src=fpath, root = None, verbose = True)
     t.what()
 
-def test00_plotxy():
+def test29_plotxy():
     t  = Table("table0")
-    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
-    t.addColumn("temp", [0.0, 1.0, 4.0, 9.0])
-    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
-    t.addColumn("ec", [0.0, 2.5, 7.0, 13.0])
+    t.add("time", [0.0, 1.0, 2.0, 3.0])
+    t.add("temp", [0.0, 1.0, 4.0, 9.0])
+    t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.add("ec", [0.0, 2.5, 7.0, 13.0])
     p = t.plotxy(["time"], ["temp", "pressure"])
     p.show()
     
@@ -300,12 +299,27 @@ def test00_plotxy():
     p = t.plotxy([0], [3], new = False)
     p.show()
 
-def test00_rows():
+def test30_row():
     t  = Table("table0")
-    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
-    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
-    t.addColumn("ec", [00, 25, 70, 130])
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.add("ec", [0, 25, 70, 130])
+    
+    r = t.row(1)
+    assert r[1] == 10
+    assert r[3] == 25
+    
+    r = t.row(3)
+    assert r[1] == 90
+    assert r[3] == 130
+    
+def test31_rows():
+    t  = Table("table0")
+    t.add("time", [0.0, 1.0, 2.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.add("ec", [00, 25, 70, 130])
     
     rows = t.rows([1,3])
     assert len(rows) == 2
@@ -313,12 +327,12 @@ def test00_rows():
     assert (rows[0][1] == 10)
     assert (rows[1][3] == 130)
 
-def test00_table():
+def test32_table():
     t  = Table("table0")
-    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
-    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
-    t.addColumn("ec", [0, 25, 70, 130])
+    t.add("time", [0.0, 1.0, 2.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.add("ec", [0, 25, 70, 130])
     
     t1, idx = t.table([1,3])
     t1.what()
@@ -330,22 +344,13 @@ def test00_table():
     assert idx[0] == 1
     assert idx[1] == 3
     
-def test00__intersect():
-    a = [1, 2, 3, 4]
-    b = [0, 2, 4, 6]
-    t = Table("t0")
-    
-    c = t._intersect([a, b])
-    assert len(c) == 2
-    assert c[0] == 2
-    assert c[1] == 4
-    
-def test00_table2():
+   
+def test33_table2():
     t  = Table("table0")
-    t.addColumn("time", [0.0, 1.0, 2.0, 3.0])
-    t.addColumn("temp", [1, 10, 40, 90])
-    t.addColumn("pressure", [2.0, 1.5, 6.0, 11.0])
-    t.addColumn("ec", [3, 25, 70, 130])
+    t.add("time", [0.0, 1.0, 2.0, 3.0])
+    t.add("temp", [1, 10, 40, 90])
+    t.add("pressure", [2.0, 1.5, 6.0, 11.0])
+    t.add("ec", [3, 25, 70, 130])
     
     t2, idx = t.table([0, 2, 3], [0, 1])
     assert t2.nrows() == 1
@@ -354,39 +359,24 @@ def test00_table2():
     assert len(idx) == 1
     assert idx[0] == 0
  
-def test00_row():
-    t  = Table("table0")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
-    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
-    t.addColumn("ec", [0, 25, 70, 130])
-    
-    r = t.row(1)
-    assert r[1] == 10
-    assert r[3] == 25
-    
-    r = t.row(3)
-    assert r[1] == 90
-    assert r[3] == 130
 
-
-def test00_issquare():
+def test34_issquare():
     t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
     assert t.isSquare()
     
     t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("temp", [0, 10, 40])
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40])
     assert not t.isSquare()
     
-def test00_sort():
+def test35_sort():
     t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
-    t.addColumn("pressure", [0.0, 1.5, 6.0, 11.0])
-    t.addColumn("ec", [0, 25, 70, 130])
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+    t.add("ec", [0, 25, 70, 130])
     t.print()
     
     t.sort(key = lambda x: x[0])
@@ -402,42 +392,31 @@ def test00_sort():
     assert t[3][0] == 70
     assert t[3][1] == 130
     t.print()
-
-def test00__contains():
+   
+def test36_addID():
     t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
-    
-    assert 0 in t
-    assert 1 in t
-    assert 2 not in t
-    assert "time" in t
-    assert "temp" in t
-    assert "pressure" not in t
-    
-def test00_setID():
-    t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("temp", [0, 10, 40, 90])
-    t.setID()
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.addID()
     t.what().wait()
     assert len(t) == 3
-    assert t[2][0] == 1
-    assert t[2][2] == 3
+    assert t[0][0] == 0
+    assert t[0][2] == 2
     
-    t[1].append(120)
-    t.setID()
+    t.name = "modified"
+    t[2].append(120)
+    t.addID(gen = lambda r: "row%02d"%r)
     t.what()
     t.tail().wait()
     assert len(t) == 3
     assert len(t[2]) == 5
-    assert t[2][4] == 5
+    assert t[0][4] == "row04"
     
-def test00_rename():
+def test37_rename():
     t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("pressure", [0.0, 1.2, 4.5, 9.2])
-    t.addColumn("temp", [0, 10, 40, 90])
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("pressure", [0.0, 1.2, 4.5, 9.2])
+    t.add("temp", [0, 10, 40, 90])
     assert t.cols[0].name == "time"
     assert t.cols[2].name == "temp"
     
@@ -446,11 +425,11 @@ def test00_rename():
     assert t.cols[2].name == "temp_00"
     t.tail()
 
-def test00_transpose():
+def test38_transpose():
     t  = Table("original")
-    t.addColumn("c1", [11, 21, 31])
-    t.addColumn("c2", [12, 22, 32])
-    t.addColumn("c3", [13, 23, 33])
+    t.add("c1", [11, 21, 31])
+    t.add("c2", [12, 22, 32])
+    t.add("c3", [13, 23, 33])
     t.head()
     
     tt = t.transpose()
@@ -460,30 +439,56 @@ def test00_transpose():
     tt.wh()
 
 
-def test00_uniques():
+def test39_uniques():
     t  = Table("original")
-    t.addColumn("c1", [11, 21, 31])
-    t.addColumn("c2", [12, 22, 32])
-    t.addColumn("c1", [13, 23, 33], allowRepetition = True)
-    t.addColumn("c3", [13, 23, 33])
+    t.add("c1", [11, 21, 31])
+    t.add("c2", [12, 22, 32])
+    t.add("c1", [13, 23, 33], allowRepetition = True)
+    t.add("c3", [13, 23, 33])
     t.head()
     
     tt = t.uniques()
     tt.head()
 
-def test00_zip():
+def test40_zip():
     t  = Table("original")
-    t.addColumn("time", [2.0, 1.0, 4.0, 3.0])
-    t.addColumn("pressure", [0.0, 1.2, 4.5, 9.2])
-    t.addColumn("temp", [0, 10, 40, 90])
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("pressure", [0.0, 1.2, 4.5, 9.2])
+    t.add("temp", [0, 10, 40, 90])
     t.head()
     
     lz = t.zip(cols=[0,2])
     print(lz)
+
+def test41__intersect():
+    a = [1, 2, 3, 4]
+    b = [0, 2, 4, 6]
+    t = Table("t0")
+    
+    c = t._intersect([a, b])
+    assert len(c) == 2
+    assert c[0] == 2
+    assert c[1] == 4
+
+def test42__contains():
+    t  = Table("original")
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    
+    assert 0 in t
+    assert 1 in t
+    assert 2 not in t
+    assert "time" in t
+    assert "temp" in t
+    assert "pressure" not in t
     
 def testit(t, wait = False):
     #try:
         #timeit(t, source=False)
+        print()
+        print()
+        print(50*"/")
+        print("RUNNING >> " + t.__name__)
         t()
         print("PASSED>> " + t.__name__)
         #if wait: input("ENTER...")
@@ -492,51 +497,51 @@ def testit(t, wait = False):
     
 
 def all_tests():
-    testit(test00_create_addColumnumn, wait=False)
+    testit(test00_create_add, wait=False)
     testit(test01_setname, wait=False)
     testit(test02_all, wait=False)
     testit(test03_names, wait=False)
     testit(test04_index, wait=False)
-    testit(test05_hascolumn, wait=False)
-    testit(test06_addColumnumn, wait=False)
+    testit(test05_has, wait=False)
+    testit(test06_add, wait=False)
     testit(test07_len, wait=False)
-    testit(test00_iter, wait=False)
-    testit(test00_item, wait=False)
-    testit(test00_at, wait=False)
-    testit(test00_pop, wait=False)
-    testit(test00_remove, wait=False)
-    testit(test00_select, wait=False)
-    testit(test00_clone, wait=False)
-    testit(test00_append, wait=False)
-    testit(test00_ncols_nrows, wait=False)
-    testit(test00_what, wait=False)
-    testit(test00_print, wait=False)
-    testit(test00_head_tail, wait=False)
-    #testit(test00_print_file)
-    #testit(test00_write)
-    #testit(test00_read, wait = True)
-    #testit(test00_read_big, wait = True)
-    #testit(test00_read_empty_column, wait = True)
-    testit(test00_io, wait = False)
-    testit(test00_convert, wait=True)
-    testit(test00_convert_date, wait=False)
-    testit(test00_toh5, wait=False)
-    #testit(test00_plotxy, wait=False)
-    testit(test00_row, wait=False)
-    testit(test00_rows, wait=False)
-    testit(test00_table, wait=False)
-    testit(test00_table2, wait=False)
-    testit(test00_sort, wait=False)
-    testit(test00_issquare, wait=False)
-    testit(test00__contains, wait=False)
-    testit(test00__intersect, wait=False)
-    testit(test00_setID, wait=False)
-    testit(test00_rename, wait=False)
-    testit(test00_transpose, wait=False)
-    testit(test00_zip, wait=False)
-    testit(test00_uniques, wait=False)
+    testit(test08_iter, wait=False)
+    testit(test09_item, wait=False)
+    testit(test10_at, wait=False)
+    testit(test11_pop, wait=False)
+    testit(test12_remove, wait=False)
+    testit(test13_select, wait=False)
+    testit(test14_clone, wait=False)
+    testit(test15_append, wait=False)
+    testit(test16_ncols_nrows, wait=False)
+    testit(test17_what, wait=False)
+    testit(test18_print, wait=False)
+    testit(test19_head_tail, wait=False)
+    testit(test20_print_file)
+    testit(test21_write)
+    testit(test22_read, wait = True)
+    testit(test23_read_big, wait = True)
+    testit(test24_read_empty_column, wait = True)
+    testit(test25_convert, wait=True)
+    testit(test26_convert_date, wait=False)
+    testit(test27_io, wait = False)
+    testit(test28_toh5, wait=False)
+    testit(test29_plotxy, wait=False)
+    testit(test30_row, wait=False)
+    testit(test31_rows, wait=False)
+    testit(test32_table, wait=False)
+    testit(test33_table2, wait=False)
+    testit(test34_issquare, wait=False)
+    testit(test35_sort, wait=False)
+    testit(test36_addID, wait=False)
+    testit(test37_rename, wait=False)
+    testit(test38_transpose, wait=False)
+    testit(test39_uniques, wait=False)
+    testit(test40_zip, wait=False)
+    testit(test41__intersect, wait=False)
+    testit(test42__contains, wait=False)
 
 if __name__ == '__main__':
-    testit(test00_convert, wait=True)
-    #all_tests()
+    #testit(test00_convert, wait=True)
+    all_tests()
     print("*** ALL DONE ***")

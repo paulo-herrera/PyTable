@@ -49,37 +49,61 @@
                     <h1 class="modulename">
 <a href="./../tbl.html">tbl</a><wbr>.required    </h1>
 
-                        <div class="docstring"><p>Module to check for installed packages</p>
-</div>
-
+                
                         <input id="mod-required-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-required-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot; Module to check for installed packages &quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="k">try</span><span class="p">:</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>    <span class="n">NUMPY_ON</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="k">except</span><span class="p">:</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="n">NUMPY_ON</span> <span class="o">=</span> <span class="kc">False</span>   
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="k">try</span><span class="p">:</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="n">PLT_ON</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="k">except</span><span class="p">:</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="n">PLT_ON</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="k">try</span><span class="p">:</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="kn">import</span> <span class="nn">h5py</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="n">H5_ON</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="k">except</span><span class="p">:</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="n">H5_ON</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="k">def</span> <span class="nf">report</span><span class="p">():</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NUMPY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>      <span class="n">NUMPY_ON</span><span class="p">)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MATPLOTLIB installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span> <span class="n">PLT_ON</span><span class="p">)</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;H5PY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>       <span class="n">H5_ON</span><span class="p">)</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="c1">######################################################################################</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="c1"># MIT License</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="c1"># </span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="c1"># Copyright (c) 2010-2024 Paulo A. Herrera</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="c1">#</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="c1"># in the Software without restriction, including without limitation the rights</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="c1"># furnished to do so, subject to the following conditions:</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="c1">#</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="c1"># The above copyright notice and this permission notice shall be included in all</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="c1"># copies or substantial portions of the Software.</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="c1"># </span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="c1"># SOFTWARE.</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="c1">######################################################################################</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="n">__docformat__</span> <span class="o">=</span> <span class="s2">&quot;google&quot;</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">&quot;&quot;&quot; Module to check for installed packages &quot;&quot;&quot;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="k">try</span><span class="p">:</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="n">NUMPY_ON</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="k">except</span><span class="p">:</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="n">NUMPY_ON</span> <span class="o">=</span> <span class="kc">False</span>   
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="k">try</span><span class="p">:</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">PLT_ON</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="k">except</span><span class="p">:</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="n">PLT_ON</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="k">try</span><span class="p">:</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="kn">import</span> <span class="nn">h5py</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="n">H5_ON</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="k">except</span><span class="p">:</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="n">H5_ON</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="k">def</span> <span class="nf">report</span><span class="p">():</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NUMPY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>      <span class="n">NUMPY_ON</span><span class="p">)</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MATPLOTLIB installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span> <span class="n">PLT_ON</span><span class="p">)</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;H5PY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>       <span class="n">H5_ON</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -95,10 +119,10 @@
 
     </div>
     <a class="headerlink" href="#report"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="report-22"><a href="#report-22"><span class="linenos">22</span></a><span class="k">def</span> <span class="nf">report</span><span class="p">():</span>
-</span><span id="report-23"><a href="#report-23"><span class="linenos">23</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NUMPY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>      <span class="n">NUMPY_ON</span><span class="p">)</span>
-</span><span id="report-24"><a href="#report-24"><span class="linenos">24</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MATPLOTLIB installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span> <span class="n">PLT_ON</span><span class="p">)</span>
-</span><span id="report-25"><a href="#report-25"><span class="linenos">25</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;H5PY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>       <span class="n">H5_ON</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="report-48"><a href="#report-48"><span class="linenos">48</span></a><span class="k">def</span> <span class="nf">report</span><span class="p">():</span>
+</span><span id="report-49"><a href="#report-49"><span class="linenos">49</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NUMPY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>      <span class="n">NUMPY_ON</span><span class="p">)</span>
+</span><span id="report-50"><a href="#report-50"><span class="linenos">50</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MATPLOTLIB installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span> <span class="n">PLT_ON</span><span class="p">)</span>
+</span><span id="report-51"><a href="#report-51"><span class="linenos">51</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;H5PY installed: </span><span class="se">\t\t</span><span class="s2"> %b&quot;</span><span class="p">,</span>       <span class="n">H5_ON</span><span class="p">)</span>
 </span></pre></div>
 
 

@@ -11,15 +11,15 @@ It provides an interface for creating a table from lists of data and write it to
 
 ```
 >> t = Table("table0")
->> t.addColumn("time", [0, 0.1, 0.2, 0.3])
->> t.addColumn("pressure", [0.1,1.2,0.3,2.5,0.8])
+>> t.add("time", [0, 0.1, 0.2, 0.3])
+>> t.add("pressure", [0.1,1.2,0.3,2.5,0.8])
 >>
 >> # SOME EXAMPLES
 >> # REMOVE ELEMENTS OF COLUMN PRESSURE THAT ARE > 1.0
->> t.getColumnByName("pressure").remove(filter = lambda x: x > 1.0)
+>> t["pressure"].remove(filter = lambda x: x > 1.0)
 >>
->> # COLLECT IN A LIST ELEMENTS OF COLUMN TIME THAT ARE < 0.2
->> vals = t.getColumnByName("time").collect(lambda x: x < 0.2)
+>> # COLLECT ELEMENTS OF COLUMN TIME THAT ARE < 0.2
+>> vals = t["time"].collect(lambda x: x < 0.2)
 >>
 >> # SAVE TABLE TO FILE
 >> t.write(dst = "table.csv", sep = ",", verbose = True)
@@ -27,6 +27,36 @@ It provides an interface for creating a table from lists of data and write it to
 >> # READ TABLE FROM FILE 
 >> t1 = Table.read(src = "table.csv", verbose = True)
 ```
+
+# GETTING STARTED
+
+**PyTable** is a small library to work with tabular data, i.e. data stored
+as columns in a text file. It includes methods to read/write tables, display (pretty print) tables,
+filter/search/remove data, easily plot columns against each other, generate new tables from columns, etc.
+
+It relies in only two main classes: Column (a simple wrapper around a Python list) and 
+a Table (a wrapper around a list of Columns).
+
+A **Column** has a name, a type (int, float, string or date), a list that contains the data (called data),
+and a format that defines how data in the column must be pretty-printed.
+
+A **Table** has a name and a list of columns.
+
+The usual workflow involves creating or reading a Table, i.e.
+
+```
+t = Table.read(src=path-to-file, sep=",")  # sep can be any regex
+# or
+t = Table("Table1").add("col1", [1,2,3])
+```
+
+do something with the stored data, e.g. sort/filter/transform, and write the new table
+to a file
+
+```
+t.save(dst=path-to-file, sep=",")
+```
+
 
 # INSTALLATION
 
@@ -38,7 +68,8 @@ python setup.py install
 This file together with the included examples in the examples directory in the
 source tree provide enough information to start using the package. 
 
-There is also reference documentation for all classes and methods in the package in the docs folder distributed with the sources.
+There is also reference documentation for all classes and methods in the package 
+in the docs folder distributed with the sources.
 
 # REQUIREMENTS
 
