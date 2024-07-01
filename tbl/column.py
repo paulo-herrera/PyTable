@@ -31,8 +31,8 @@ import math
 import inspect
 
 class Column:
-    """ General container to store data as column of a table. 
-        Constructor should never be called from outside package. 
+    """ General container to store data of a column. 
+        Constructor should never be called from outside the package. 
     """
     
     def __init__(self, name: str, desc: str = None):
@@ -101,6 +101,8 @@ class Column:
         elif self.type and len(data) > 0:           # have to check if types match
             ntype = getType(data[0])
             assert(ntype == self.type)
+        elif len(data) == 0 and ctype:
+            self.type = getType(ctype)
         elif len(data) == 0:
             self.type = None
         elif not self.type and ctype:
@@ -148,7 +150,7 @@ class Column:
     
     
     def at(self, idxs):
-        """ Given a list of indexes of elements in this columns, creates a new column.
+        """ Given a list of indexes of elements in this column, creates a new column.
             
             Args:
                 idxs: list or tuple with indexes of elements in this column that
@@ -299,9 +301,9 @@ class Column:
         return ns == 0    
 
     
-    # TODO: ADD TEST
-    def like(self, other):
-        """ Set this table properties as other.
+    # TODO: POSSIBLE DEPRECATION
+    def like(self):
+        """ Creates a column like this one.
             
             Args:
                 other: table that has the properties to be copied.
@@ -309,14 +311,16 @@ class Column:
             Returns:
                 This table.
         """
-        self.type = other.type
-        self.fmt  = other.fmt
-        self.tostr = other.tostr
-        self.attrs = other.attrs
+        c = Column(self.name)
+        c.type  = self.type
+        c.fmt   = self.fmt
+        c.tostr = self.tostr
+        c.attrs = self.attrs
+        return c
         
     
     def longStr(self):
-        """ Returns a string that describes content in this column, that it includes
+        """ Returns a string that describes content in this column, that includes
             attributes. For a shorter version, use __str__."""
         s = "Col[%12s] \t %4s< \t %8d \t %10s\n"%(self.name, self.type, len(self.data), self.fmt)
         for k, a in self.attrs.items():
@@ -523,7 +527,7 @@ class Column:
                  func: function that accepts as argument index i, element e and list of
                       data stored in this column and return a value.
                 start: start the loop at this position. Can be useful to compute quantities 
-                       between two data elementes separted by more than 1.
+                       between two data elementes separated by more than 1.
                   end: if present, specifies upper limit for loop. If not present
                        then use len(self.data). Can be useful to compute quantities 
                        between two data elementes separted by more than 1.                

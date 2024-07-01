@@ -5,7 +5,14 @@ text files.
 
 The main purpose of PyTable is to make working with tabular data easy and even "enjoyable" (if that is possible).
 
-It provides an interface for creating a table from lists of data and write it to and read it from text files. In addition, it provides some methods for filtering columns and data, and applying operations on data, e.g. mathematical operations on all elements of a column, computing max and min values, etc.
+It provides an interface for creating a table from lists of data and write it to and read it from text files. 
+In addition, it provides some methods for filtering columns and data, and 
+applying operations on data, e.g. mathematical operations on all elements 
+of a column, computing max and min values, etc.
+
+It is intended to be used to handle relatively small tables of up to a few MB (< 100 MB).
+However, it is likely that will work withouth significant issues with larger tables.
+
 
 # EXAMPLE
 
@@ -50,7 +57,7 @@ from tbl import Table
 
 # ALTERNATIVE 1
 t = Table.read(src=path-to-file, sep=",")  # sep can be any regex
-# The read table has all columns stored as strings, so they need to be 
+# After Table.read all columns are stored as strings, so they need to be 
 # converted to the proper type before use. For example, for a table that 
 # has 2 columns of integers and one column of strings
 t.convert(cols = [0,1,2], types=["i","i","s"])
@@ -92,27 +99,48 @@ to a file.
 t.save(dst=path-to-file, sep=",")
 ```
 
-The easiest way to modified data is using a direct access, e.g.
+The easiest way to modify data is using direct access, e.g.
 
 ```
 # Change the value of the second element of the third column
 t[2][1] =   1.2 # indexing in Python starts at 0, so t[2] is the third column
 
-# or, to make self-explanatory
+# or, to make it more self-explanatory
 t["Pressure"][1] = 1.2
 
 # if multiple values must be changed, if could be easier,
-c = t["Pressure"]  # c is a reference to the data stored in t, so any changes applied to both objects
+c = t["Pressure"]  # c is a reference to the data stored in t, so any changes apply to both objects
 c[1] = 1.2
 c[2] = 2.0
 c[3] = 2.4
 
-# after modifying values is useful to print the table, 3 ways
-t.head(10)  #prints first 10 lines, useful for long tables
-t.tail(10)  #prints last 10 lines
-t.print()   #prints full table to sys.stdout, check options in docs
+# After modifying values is useful to print the table. 
+# Formatting is controlled by calling t.setFormatStr() or by calling it on each Column
+# There are 3 ways to print rows in a table:
+t.head(10)    #prints first 10 rows, useful for long tables
+t.tail(10)    #prints last 10 rows
+t.print()     #prints full table to sys.stdout, check options in docs
 ```
 
+A common need when working with long tables is searching for specific columns,
+
+```
+# get the position of all columns that have a name that contains the word "Saturation"
+idxs = t.index(filter = lambda c, name: "Saturation" in name)
+
+# sometimes it is easier to create a new table that has only those columns
+t1 = t.select(filter = lambda c, name: "Saturation" in name)
+```
+
+PyTable stores data in columns, so it has limited support to work with rows. However,
+it is possible to get the elements in a row or a few rows,
+
+```
+r = t.row(1)        # returns a python list with elemens in second row
+lr = t.rows([0,2])  # returns a list of two tuples that contain elements of the first and third rows.
+```
+**Important** rows returned as lists DO NOT share data with the table, so any changes apply to them
+do not propagate to the source table.
 
 
 # INSTALLATION

@@ -9,6 +9,13 @@ def test00_create_add():
     t = Table("table0").add("time", [0.0, 0.1, 0.2, 0.3])
     t.add("pressure", [0.1, 1.2, 0.3, 2.5, 0.8])
     print(t)
+    
+    t1 = Table("table1")
+    a = [1,2,3,4,5]
+    c = Column("c1").addData(data=a,ctype=a[0])
+    t1.add(c.name, c)
+    t1.head()
+    t1.what()
 
 def test01_setname():
     t = Table("table0").add("time", [0.0, 0.1]).setName("ttable1")
@@ -327,37 +334,37 @@ def test31_rows():
     assert (rows[0][1] == 10)
     assert (rows[1][3] == 130)
 
-def test32_table():
-    t  = Table("table0")
-    t.add("time", [0.0, 1.0, 2.0, 3.0])
-    t.add("temp", [0, 10, 40, 90])
-    t.add("pressure", [0.0, 1.5, 6.0, 11.0])
-    t.add("ec", [0, 25, 70, 130])
+# def test32_table():
+    # t  = Table("table0")
+    # t.add("time", [0.0, 1.0, 2.0, 3.0])
+    # t.add("temp", [0, 10, 40, 90])
+    # t.add("pressure", [0.0, 1.5, 6.0, 11.0])
+    # t.add("ec", [0, 25, 70, 130])
     
-    t1, idx = t.table([1,3])
-    t1.what()
-    t1.head().wait()
-    assert len(t1) == 4
-    assert len(t1[0]) == 2
-    assert (t1[1][0] == 10)
-    assert (t1[3][1] == 130)
-    assert idx[0] == 1
-    assert idx[1] == 3
+    # t1, idx = t.table([1,3])
+    # t1.what()
+    # t1.head().wait()
+    # assert len(t1) == 4
+    # assert len(t1[0]) == 2
+    # assert (t1[1][0] == 10)
+    # assert (t1[3][1] == 130)
+    # assert idx[0] == 1
+    # assert idx[1] == 3
     
    
-def test33_table2():
-    t  = Table("table0")
-    t.add("time", [0.0, 1.0, 2.0, 3.0])
-    t.add("temp", [1, 10, 40, 90])
-    t.add("pressure", [2.0, 1.5, 6.0, 11.0])
-    t.add("ec", [3, 25, 70, 130])
+# def test33_table2():
+    # t  = Table("table0")
+    # t.add("time", [0.0, 1.0, 2.0, 3.0])
+    # t.add("temp", [1, 10, 40, 90])
+    # t.add("pressure", [2.0, 1.5, 6.0, 11.0])
+    # t.add("ec", [3, 25, 70, 130])
     
-    t2, idx = t.table([0, 2, 3], [0, 1])
-    assert t2.nrows() == 1
-    assert t2[1][0] == 1
-    assert t2[3][0] == 3
-    assert len(idx) == 1
-    assert idx[0] == 0
+    # t2, idx = t.table([0, 2, 3], [0, 1])
+    # assert t2.nrows() == 1
+    # assert t2[1][0] == 1
+    # assert t2[3][0] == 3
+    # assert len(idx) == 1
+    # assert idx[0] == 0
  
 
 def test34_issquare():
@@ -460,15 +467,15 @@ def test40_zip():
     lz = t.zip(cols=[0,2])
     print(lz)
 
-def test41__intersect():
-    a = [1, 2, 3, 4]
-    b = [0, 2, 4, 6]
-    t = Table("t0")
+# def test41__intersect():
+    # a = [1, 2, 3, 4]
+    # b = [0, 2, 4, 6]
+    # t = Table("t0")
     
-    c = t._intersect([a, b])
-    assert len(c) == 2
-    assert c[0] == 2
-    assert c[1] == 4
+    # c = t._intersect([a, b])
+    # assert len(c) == 2
+    # assert c[0] == 2
+    # assert c[1] == 4
 
 def test42__contains():
     t  = Table("original")
@@ -481,7 +488,78 @@ def test42__contains():
     assert "time" in t
     assert "temp" in t
     assert "pressure" not in t
+
+def test43__collect():
+    t  = Table("original")
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.head()
     
+    l = t.collect(func = lambda r, c, e: c==1 and e > 40)
+    print(l)
+    assert len(l) == 1
+    assert l[0] == 90
+    
+def test44__collectrc():
+    t  = Table("original")
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.head()
+    
+    l = t.collectrc(func = lambda r, c, e: c==1 and e > 40)
+    print(l)
+    assert len(l) == 1
+    r, c, e = l[0]
+    assert r == 3
+    assert c == 1
+    assert e == 90
+
+def test45__map():
+    t  = Table("original")
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.head()
+    
+    t1 = t.clone()
+    t1 = t1.map(func = lambda r, c, e: 0 if (r == 3) else e) # change row 3 to 0
+    assert int(t1[0][3]) == 0
+    assert t1[1][3] == 0
+    t1.head()
+    
+    t2 = t.clone()
+    t2 = t2.map(func = lambda r, c, e: e * e if (c == 1) else e)
+    assert t2[1][0] == 0
+    assert t2[1][1] == 10*10
+    assert t2[1][2] == 40*40
+    assert t2[1][3] == 90*90
+    t2.head()
+    
+    
+def test46__subtable():
+    t  = Table("original")
+    t.add("time", [2.0, 1.0, 4.0, 3.0])
+    t.add("temp", [0, 10, 40, 90])
+    t.add("pressure", [0, 5, 8, 7])
+    t.add("saturation", [0.2, 1.0, 0.1, 0.6])
+    t.head()
+    #t.what()
+    
+    t1 = t.subtable(func = lambda r, c, e: r in [0,3])
+    t1.head()
+    #t1.what()
+    
+    t2 = t.subtable(func = lambda r, c, e: c in [0,2])
+    t2.head()
+    #t2.what()
+    
+    t3 = t.subtable(func = lambda r, c, e: c == 1 and e >= 40)
+    t3.head()
+    #t3.what()
+    
+    t4 = t.subtable(func = lambda r, c, e: r == 1 and (e == 10 or e == 5))
+    t4.head()
+    #t4.what()
+
 def testit(t, wait = False):
     #try:
         #timeit(t, source=False)
@@ -496,7 +574,7 @@ def testit(t, wait = False):
     #    print("FAILED>> " + t.__name__)  
     
 
-def all_tests():
+def test_all():
     testit(test00_create_add, wait=False)
     testit(test01_setname, wait=False)
     testit(test02_all, wait=False)
@@ -529,8 +607,8 @@ def all_tests():
     testit(test29_plotxy, wait=False)
     testit(test30_row, wait=False)
     testit(test31_rows, wait=False)
-    testit(test32_table, wait=False)
-    testit(test33_table2, wait=False)
+#    testit(test32_table, wait=False)
+#    testit(test33_table2, wait=False)
     testit(test34_issquare, wait=False)
     testit(test35_sort, wait=False)
     testit(test36_addID, wait=False)
@@ -538,10 +616,16 @@ def all_tests():
     testit(test38_transpose, wait=False)
     testit(test39_uniques, wait=False)
     testit(test40_zip, wait=False)
-    testit(test41__intersect, wait=False)
+#    testit(test41__intersect, wait=False)
     testit(test42__contains, wait=False)
+    testit(test43__collect, wait=False)
+    testit(test44__collectrc, wait=False)
+    testit(test45__map, wait=False)
+    testit(test46__subtable, wait=False)
 
 if __name__ == '__main__':
-    #testit(test00_convert, wait=True)
-    all_tests()
+    test_all()
+    #test00_create_add()
+    #test46__subtable()
+    
     print("*** ALL DONE ***")

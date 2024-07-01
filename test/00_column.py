@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/paulo/Documents/Programming/pytable')
+
 from tbl.column import Column
 
 def test00_create():
@@ -275,18 +278,30 @@ def test25_telap():
     assert int(telap[2]) == 14
     
     
+def test26__like():
+    d = ["01/01/1970", "08/01/1970", "15/01/1970"]
+    c = Column("Dates").addData(d)
+    
+    c1 = c.like()
+    assert c.name == c1.name
+    assert c.type == c1.type
+    assert c.fmt == c1.fmt
+    
     
 def testit(t, wait = False):
     #try:
         #timeit(t, source=False)
+        print()
+        print()
+        print(50*"/")
+        print("RUNNING >> " + t.__name__)
         t()
         print("PASSED>> " + t.__name__)
         #if wait: input("ENTER...")
     #except:
     #    print("FAILED>> " + t.__name__)  
     
-        
-if __name__ == '__main__':
+def test_all():
     testit(test00_create)
     testit(test01_addData)
     testit(test02_addData_Empty)
@@ -301,11 +316,11 @@ if __name__ == '__main__':
     testit(test10_apply)
     testit(test11_map)
     testit(test12_reduce)
-    #testit(test13_print)
-    #testit(test14_print_fmt)
-    #testit(test15_print_file)
-    #testit(test16_print_range)
-    #testit(test17_head_tail)
+    testit(test13_print)
+    testit(test14_print_fmt)
+    testit(test15_print_file)
+    testit(test16_print_range)
+    testit(test17_head_tail)
     testit(test18_np)
     testit(test19_fmt)
     testit(test20_blank)
@@ -314,4 +329,11 @@ if __name__ == '__main__':
     testit(test23_accum)
     testit(test24_store)
     testit(test25_telap)
+    testit(test26_like)
+    
+    
+if __name__ == '__main__':  
+    test26__like()
+    #test_all()
+    
     print("*** ALL DONE ***")

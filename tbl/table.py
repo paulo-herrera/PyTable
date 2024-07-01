@@ -81,8 +81,7 @@ class Table:
             assert False, "name is already in table: " + name
         
         if data and (isinstance(data, Column)): # and data == None:
-            data.name = name
-            self.cols.append(data)    
+            self.cols.append(data)  
         elif data:
             c = Column(name)
             c.addData(data)
@@ -177,13 +176,13 @@ class Table:
         return cols_
 
    
-    def clone(self, shallow = True, newName = None):
+    def clone(self, shallow = False, newName = None):
         """ Creates a shallow or deep copy of this table.
             
             Args:
                 shallow: if True, only pass references to columns in this table to new
                          table. If False, then creates a deep copy, so that this table
-                         and new table do not share information.
+                         and new table do not share information. DEFAULT: False
                 newName: if present, then use it as title of new table.
             
             Returns:
@@ -196,7 +195,53 @@ class Table:
             t.add(ncol.name, ncol)
         return t
 
-
+    
+    def collect(self, func):
+        """ Collects elements from this Table that satisfies a filter criterium. 
+        
+            Args:
+                func: filter, function-like with signature func(row, col, elem) -> Boolean
+            
+            Returns: 
+                A list with elements of this Table that pass the filter. 
+                The elements are ordered first by column.
+                
+        """
+        col = []
+        nrows = self.nrows()
+        ncols = self.ncols()
+        for c in range(ncols):
+            for r in range(nrows):
+                e = self.cols[c].data[r]
+                if func(r, c, e): col.append(e)
+        
+        return col
+        
+    
+    def collectrc(self, func):
+        """ Collects elements from this Table that satisfies a filter criterium. 
+            Similar to collect but it also returns the row and column.
+        
+            Args:
+                func: filter, function-like with signature func(row, col, elem) -> Boolean
+            
+            Returns: 
+                A list of tuples (row,col,elem) with elements of this Table that pass the filter. 
+                The elements are ordered first by column.
+        """
+        col = []
+        nrows = self.nrows()
+        ncols = self.ncols()
+        for c in range(ncols):
+            for r in range(nrows):
+                e = self.cols[c][r]
+                if func(r, c, e):
+                    idx = (r,c,e) 
+                    col.append(idx)
+        
+        return col
+        
+    
     @staticmethod
     def fromH5(src, root = None, verbose = False):
         """ Reads table from HDF5 file saved by calling toH5 or with a similar format.
@@ -370,6 +415,32 @@ class Table:
         """
         return self.max_rows
 
+    
+    def map(self, func):
+        """ Changes values of elements in this Table by mapping a function.
+            After calling this method, values in this Table may have changed.
+        
+            Args:
+                func: a function-like object with signature func(row, col, elem) -> value 
+            
+            Returns:
+                this Table.
+        """
+        col = []
+        nrows = self.nrows()
+        ncols = self.ncols()
+        for c in range(ncols):
+            for r in range(nrows):
+                e = self.cols[c].data[r]
+                val = func(r, c, e)
+                self.cols[c].data[r] = val
+        
+        desc = inspect.getsource(func).strip()
+        self.name = self.name + "__" + desc
+        
+        return self
+        
+    
 
     def setFormatStr(self, fmt_int: Union[str,None], fmt_float: Union[str,None], \
                            fmt_date: Union[str,None], fmt_str: Union[str,None]):
@@ -402,7 +473,7 @@ class Table:
         """ Attempt to convert each column of this table to the specified type provided in the list fmt.
             
             Args:
-                cols: list with columns indexes that should be converted. ç
+                cols: list with columns indexes that should be converted.
                       if empty, assumes all columns in the table should be converted.
                 types: a list with single characters that specify the new type of each column, 
                      i.e.["i", "f", "d", "s"].
@@ -412,7 +483,7 @@ class Table:
             Returns:
                 This Table.
                 
-        # """
+        """
         for t in types:
             assert t in ALLOWED_TYPES, t
         
@@ -672,15 +743,14 @@ class Table:
     
     
     def rows(self, idx_rows):
-        """ Returns a list with elements of all columns that are at positions in idx_rows.
-            Elements of each column are stored in a tuple within the returned list.
+        """ Returns a list of tuples that contains elements of rows at positions specified by idx_rows.
             
             Args:
                 idx_rows: list of rows as ints, e.g. [0,1,2,3].
             
             Returns:
-                A list with elements of all columns. If n is higher that len(c),
-                then the tuple includes None.
+                A list of tuples with elements in each column that are at specified positions. 
+                If position n is higher that len(c), then the returned tuple includes None.
         """
         is_iterable(idx_rows)
         self.__setMaxRows()
@@ -689,6 +759,7 @@ class Table:
         for n in idx_rows:
             assert n <= self.max_rows, "Row (%d) beyond table size (%d)"%(n, self.max_rows)
             r = self.row(n)
+            r = tuple(r)
             _rows.append(r)
         return _rows
     
@@ -752,6 +823,42 @@ class Table:
         return self
     
     
+    def subtable(self, func):
+        """ Creates a subtable based on a filter criterium defined by func.
+        
+            Args:
+                func: function-like object with signature func(row, col, elem) -> Boolean
+            
+            Returns:
+                A new Table with only rows and columns that have at least one 
+                triplet (row, col, elem) that satisfies the filter function.
+        """
+        idxs = self.collectrc(func)
+        row, col, elem = zip(*idxs)
+        row = set(sorted(row))
+        col = set(sorted(col))
+        row = list(row)
+        col = list(col)
+        
+        desc = inspect.getsource(func).strip()
+        t = Table(self.name + "__subtable: " + desc)
+        
+        for j in range(len(col)):
+            c = col[j]
+            data = []
+            for r in range(len(row)):
+                rr = row[r]
+                e = self.cols[c][rr]
+                data.append(e)
+            cname = self.cols[c].name
+            t.add(cname, data)
+            t.cols[j].fmt   = self.cols[c].fmt
+            t.cols[j].tostr = self.cols[c].tostr
+            t.cols[j].attrs = self.cols[c].attrs
+                
+        return t
+        
+        
     def sort(self, key, reverse = False):
         """ Sort rows of table according to key in ascending order.
         
@@ -870,46 +977,15 @@ class Table:
         return dst
     
     
-    def _intersect(self, args):
-        """ Returns a list that is the intersection of elements in lists in args.
-        """
-        s = set(args[0])
-        for i in range(1, len(args)):
-            idx = args[i]
-            s = s.intersection(idx)
-        return sorted(list(s))
-        
-        
-    def table(self, *args):
-        """ Creates a table with rows specified in the list idx_rows.
-            
-            Args:
-                args: a single or multiples lists of indices of rows that should 
-                      be included in the new table. 
-                      Same as returned by Column.indexes and accepted by rows.
-            Returns:
-                - A New table that is a subtable of this table with rows specified by a single list
-                of indexes in args or by the intersection of multiple lists in args.
-                - And the list of indexes used to generate the subtable.
-        """
-        if len(args) > 1:
-            idx_rows = self._intersect(args)
-        else:
-            idx_rows = args[0]
-            
-        rows = self.rows(idx_rows)
-        t = Table("Subtable[" + self.name + "]")
-        
-        for i in range(len(self.cols)):  
-            data = []
-            for r in rows:
-                d = r[i]
-                data.append(d)
-            t.add(self.cols[i].name, data)
-            t.cols[i].like(self.cols[i]) 
-            
-        return t, idx_rows
-
+    # def _intersect(self, args):
+        # """ Returns a list that is the intersection of elements in lists in args.
+        # """
+        # s = set(args[0])
+        # for i in range(1, len(args)):
+            # idx = args[i]
+            # s = s.intersection(idx)
+        # return sorted(list(s))
+    
     
     def transpose(self):
         """ Creates a table that is the transpose of this table, i.e.
