@@ -772,27 +772,29 @@
 </span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a>        <span class="c1">#assert idx &lt; len(self.data)</span>
 </span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 </span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a>
-</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a>
-</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-</span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>
-</span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a>
-</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a>        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-</span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a>            <span class="k">yield</span> <span class="n">v</span>
-</span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a> 
-</span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a> 
-</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-</span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a>    <span class="k">pass</span>
-</span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a>    <span class="c1"># c = Column(&quot;Example&quot;, 0)</span>
-</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a>    <span class="c1"># c.addData([1,2,3,4,5])</span>
-</span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a>    <span class="c1"># print(c)</span>
-</span><span id="L-623"><a href="#L-623"><span class="linenos">623</span></a>
-</span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a>    <span class="c1"># sum = c.reduce(func = lambda i, d, result: result + d, result = 0)</span>
-</span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a>    <span class="c1"># print(&quot;sum: %d&quot;%sum)</span>
-</span><span id="L-626"><a href="#L-626"><span class="linenos">626</span></a>
-</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a>    <span class="c1"># min = c.reduce(func = lambda i, d, result: result if result &lt; d else d, result=100000)</span>
-</span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a>    <span class="c1"># print(&quot;min: %d&quot;%min)</span>
+</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a>    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a>
+</span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a>
+</span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a>
+</span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a>        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+</span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a>            <span class="k">yield</span> <span class="n">v</span>
+</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a> 
+</span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a> 
+</span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a>    <span class="k">pass</span>
+</span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a>    <span class="c1"># c = Column(&quot;Example&quot;, 0)</span>
+</span><span id="L-623"><a href="#L-623"><span class="linenos">623</span></a>    <span class="c1"># c.addData([1,2,3,4,5])</span>
+</span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a>    <span class="c1"># print(c)</span>
+</span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a>
+</span><span id="L-626"><a href="#L-626"><span class="linenos">626</span></a>    <span class="c1"># sum = c.reduce(func = lambda i, d, result: result + d, result = 0)</span>
+</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a>    <span class="c1"># print(&quot;sum: %d&quot;%sum)</span>
+</span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a>
+</span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a>    <span class="c1"># min = c.reduce(func = lambda i, d, result: result if result &lt; d else d, result=100000)</span>
+</span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a>    <span class="c1"># print(&quot;min: %d&quot;%min)</span>
 </span></pre></div>
 
 
@@ -1383,14 +1385,16 @@
 </span><span id="Column-606"><a href="#Column-606"><span class="linenos">606</span></a>        <span class="c1">#assert idx &lt; len(self.data)</span>
 </span><span id="Column-607"><a href="#Column-607"><span class="linenos">607</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 </span><span id="Column-608"><a href="#Column-608"><span class="linenos">608</span></a>
-</span><span id="Column-609"><a href="#Column-609"><span class="linenos">609</span></a>
-</span><span id="Column-610"><a href="#Column-610"><span class="linenos">610</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Column-611"><a href="#Column-611"><span class="linenos">611</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-</span><span id="Column-612"><a href="#Column-612"><span class="linenos">612</span></a>
-</span><span id="Column-613"><a href="#Column-613"><span class="linenos">613</span></a>
-</span><span id="Column-614"><a href="#Column-614"><span class="linenos">614</span></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Column-615"><a href="#Column-615"><span class="linenos">615</span></a>        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-</span><span id="Column-616"><a href="#Column-616"><span class="linenos">616</span></a>            <span class="k">yield</span> <span class="n">v</span>
+</span><span id="Column-609"><a href="#Column-609"><span class="linenos">609</span></a>    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="Column-610"><a href="#Column-610"><span class="linenos">610</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span id="Column-611"><a href="#Column-611"><span class="linenos">611</span></a>
+</span><span id="Column-612"><a href="#Column-612"><span class="linenos">612</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Column-613"><a href="#Column-613"><span class="linenos">613</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span><span id="Column-614"><a href="#Column-614"><span class="linenos">614</span></a>
+</span><span id="Column-615"><a href="#Column-615"><span class="linenos">615</span></a>
+</span><span id="Column-616"><a href="#Column-616"><span class="linenos">616</span></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Column-617"><a href="#Column-617"><span class="linenos">617</span></a>        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+</span><span id="Column-618"><a href="#Column-618"><span class="linenos">618</span></a>            <span class="k">yield</span> <span class="n">v</span>
 </span></pre></div>
 
 

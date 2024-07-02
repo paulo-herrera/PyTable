@@ -57,6 +57,7 @@ from tbl import Table
 
 # ALTERNATIVE 1
 t = Table.read(src=path-to-file, sep=",")  # sep can be any regex
+
 # After Table.read all columns are stored as strings, so they need to be 
 # converted to the proper type before use. For example, for a table that 
 # has 2 columns of integers and one column of strings
@@ -65,6 +66,7 @@ t.convert(cols = [0,1,2], types=["i","i","s"])
 # It is usual that all columns have the same type, for e.g. floats
 t.convert(cols=[], types=["f"]) #or, shorter
 t.convert([],["f"])
+
 
 # ALTERNATIVE 2
 # alternatively, one can create a table from scratch
@@ -77,7 +79,7 @@ t.add("ec", [0, 25, 70, 130])
 
 # After the table has been created, it is a good idea to check what is stored on it
 t.what()  # prints a summary of the columns in the table
-t.wait()  # this line will stop the script and ask to press ENTER
+t.wait()  # this line will stop the script and ask to press ENTER before continuing
 
 # that should print something like this
 #================================================================================
@@ -90,6 +92,9 @@ t.wait()  # this line will stop the script and ask to press ENTER
 #Col[0002]:             pressure 	   f< 	 00000004 
 #Col[0003]:                   ec 	   i< 	 00000004 
 #================================================================================
+
+# Alternatively, one may want to loop over columns and print their content indiviually
+for c in t: c.print()
 ```
 
 do something with the stored data, e.g. sort/filter/transform, and write the new table
@@ -120,6 +125,10 @@ c[3] = 2.4
 t.head(10)    #prints first 10 rows, useful for long tables
 t.tail(10)    #prints last 10 rows
 t.print()     #prints full table to sys.stdout, check options in docs
+
+
+# Finally, to add more elements to a column
+t[0].append(2.4)
 ```
 
 A common need when working with long tables is searching for specific columns,
@@ -130,7 +139,30 @@ idxs = t.index(filter = lambda c, name: "Saturation" in name)
 
 # sometimes it is easier to create a new table that has only those columns
 t1 = t.select(filter = lambda c, name: "Saturation" in name)
+
+# Creating a table based on a filter that applies to values and column and row indexes,
+t1 = t.subtable(func = lambda r, c, e: r in [0,3])  # creates a new table with only the first and fourth row
+
+# similarly, to create a table that has only positive values (>= 0.0)
+t2 = t.subtable(func = lambda r, c, e: e >= 0.0)
+
+# of course, for all calls is possible to not use the name of the argument, e.g. func
 ```
+**Important** new tables DO NOT SHARE data with original table, so changes do not propagate to the original.
+
+There are many cases when it is necessary to locate data in the table, e.g. get all values greater than 100.0
+
+```
+values = t.collect(func = lambda r, c, e: e > 100.0)     # returns a standard list with values e > 100.0
+```
+
+There are other cases when one is interested in locating values, e.g. 
+which is the row and column for all values greater than 250.0?
+
+```
+values = t.collectrc(func = lambda r, c, e: e > 100.0)   # returns a standard list of tuples (r,c,e) for e > 250.0
+```
+
 
 PyTable stores data in columns, so it has limited support to work with rows. However,
 it is possible to get the elements in a row or a few rows,
@@ -141,6 +173,66 @@ lr = t.rows([0,2])  # returns a list of two tuples that contain elements of the 
 ```
 **Important** rows returned as lists DO NOT share data with the table, so any changes apply to them
 do not propagate to the source table.
+
+
+The last two common tasks are related to transforming and plotting data on a table. 
+For example, to convert times stored as seconds to days in all columns of a table
+
+```
+# maps assign the value of element e at row r in column c to the result of fun(r,c,e)
+t.map(func = lambda r, c, e: e/ 86400.0)   # note that map changes the data *in-place*
+```
+
+There are a couple of similar functions for columns,
+```
+t[0].map(func = lambda r, c, e: e/ 86400.0)
+tday = t[0].apply(func = lambda r, c, e: e/ 86400.0) # apply returns a standard list that stores the results
+```
+
+For the second task: To plot columns against each other, e.g. plot pressure and temperature versus time
+
+```
+plt = t.plotxy(xcols["time"], ycols["temperature", "pressure"], labels=["Time", "Temp/Pressure"])
+# plt is just a handle to matplotlib.pyplot. 
+# Check https://matplotlib.org/3.5.3/api/_as_gen/matplotlib.pyplot.html for details
+
+plt.legend()
+plt.show()   
+```
+
+A handy way to plot all columns versus the first one (common task for the analysis of time series),
+```
+t.plotxy(xcols[0], ycols[-1])
+```
+
+To have figures with multiple plots (subplots)
+
+```
+import matplotlib.pyplot as plt
+
+plt.subplot(2,1,1)
+t.plotxy(xcols[0], ycols[1], new=False)
+
+plt.subplot(2,1,2)
+t.plotxy(xcols[0], ycols[2], new=False)
+
+plt.show()
+```
+
+Finally, PyTable provides some convenience methods to work with dates, e.g.
+to convert dates stored in a columns as strings "day/month/year" to a datetime object
+
+```
+c = Column("dates").addData(["01/05/1977 00:00:00", "01/07/1977 00:15:20"]) 
+c.convert("d", fmt = "%d/%m/%Y %H:%M:%S")
+```
+
+I recommend working with elapsed time instead of dates, though, so
+
+```
+# returns days since January 1st, 1990, for dates stored in column c 
+te = c.telap(start = "01/01/1990", fmt_date = '%d/%m/%Y') 
+```
 
 
 # INSTALLATION
@@ -165,10 +257,14 @@ source tree provide enough information to start using the package.
 There is also reference documentation for all classes and methods in the package 
 in the docs folder distributed with the sources.
 
+
 # REQUIREMENTS
 
-    - Python 3 (tested with Python 3.7)
+    - Python3 (tested with Python 3.7)
     - h5Py, only required to export to/and import from HDF5 files  [OPTIONAL]
+    - matplotlib.pyplot [OPTIONAL]
+    - Numpy [OPTIONAL]
+    
 
 # DEVELOPMENT
 
@@ -187,40 +283,13 @@ The design of the package considered the following objectives:
    However, it is possible to work with tables that contain few hundred or even millions of 
    elements and hundred of columns with ease. 
 
-## DEVELOPER NOTES:
 
-It is useful to build and install the package to a temporary location without
-touching the global python site-packages directory while developing. To do
-this, while in the root directory, one can type:
-
-    1. python setup.py build --debug install --prefix=./tmp
-    2. export PYTHONPATH=./tmp/lib/python2.7/site-packages/:$PYTHONPATH (UNIX)
-	2. set PYTHONPATH=%ROOT_DIR%/tmp/lib/site-packages/;%PYTHONPATH%             (WINDOWS)
-
-NOTE: you may have to change the Python version depending of the installed
-version on your system. 
-
-To test the package one can run some of the examples, e.g.:
-./tmp/lib/python2.7/site-packages/pytable/examples/XXXX.py
-
-That should create a XXXX.csv file in the current directory.
-
-An alternative is creating a virtual environment as explained here:
-https://docs.python.org/3/tutorial/venv.html
-
-To generate distribution files (tar.gz and .whl files) in build directory:
-
-1. python setup.py sdist
-2. python setup.py bdist_wheel
-
-To create docs from the root directory type:
-    pdoc -d google -o ./docs ./tbl
-    
 ## CONTRIBUTE:
 
 I am open to incorporate bug fixes and additional improvements contributed by other
 developers. As a non-native English speaker, I would also appreciate proof reading of
 the this page and interesting examples to demonstrate the use of the PyTable.
+
 
 # SUPPORT:
 

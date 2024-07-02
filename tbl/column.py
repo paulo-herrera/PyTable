@@ -605,6 +605,8 @@ class Column:
         #assert idx < len(self.data)
         return self.data[idx]
 
+    def __setitem__(self, idx, value):
+        self.data[idx] = value
 
     def __len__(self):
         return len(self.data)

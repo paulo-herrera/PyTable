@@ -953,7 +953,7 @@ class Table:
         for c in self.cols:
             # avoid problems when finding the correct path
             c.name = c.name.replace("/","_")
-            print("COLUMN NAME: " + c.name)  # DEBUG
+            #print("COLUMN NAME: " + c.name)  # DEBUG
             dtype = getH5TypeStr(c.type)
             nelem = len(c)
             
@@ -975,16 +975,6 @@ class Table:
         h5.close()
         if verbose: print("   Finished saving HDF5 file")
         return dst
-    
-    
-    # def _intersect(self, args):
-        # """ Returns a list that is the intersection of elements in lists in args.
-        # """
-        # s = set(args[0])
-        # for i in range(1, len(args)):
-            # idx = args[i]
-            # s = s.intersection(idx)
-        # return sorted(list(s))
     
     
     def transpose(self):
