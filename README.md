@@ -299,7 +299,6 @@ and making incremental improvements as time allows. However, I also  provide
 contract based support for commercial or research projects interested in this 
 package and/or I am open to discuss possible commercial licensing.
 
-For further details, please contact me to: paulo.herrera.eirl@gmail.com.
 
 ^ PyTable is a small library to work with relatively small data sets and should not be
   confused with PyTables, which was developed to work with large data sets in distributed

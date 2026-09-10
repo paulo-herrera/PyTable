@@ -1,7 +1,7 @@
 ######################################################################################
 # MIT License
 # 
-# Copyright (c) 2010-2024 Paulo A. Herrera
+# Copyright (c) 2010-2026 Paulo A. Herrera
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -265,47 +265,43 @@ def read_tab_file(src: str, sep: str, strip: bool=False, verbose: bool=True, enc
     
     s = open(src, "r", encoding=encoding)
     lines = s.readlines()
+    lines = [line.strip() for line in lines]
     s.close()
     
     if verbose: print("   Read %d lines"%(len(lines)))
-
+       
     if skip > 0:
         skipped = lines[0:skip]
         lines = lines[skip:]
     else:
         skipped = []
-    
-    #v = lines[0].split(sep)
-    v = re.split(sep, lines[0].strip())
-    
+
+    v = re.split(sep, lines[0])
     nsep = len(v)
     if verbose: 
         print("   # separators in first line: %d  skip: %d"%(nsep, skip))
-    
+
     values = []
-    ln = 1
-    for il in range(len(lines)):
-        l = lines[il]
-        ll = l.strip()                 #FIX LAST EMPTY LINE
-        if len(ll) == 0: 
+    for il in range(0, len(lines)):
+        cl = lines[il]
+        cll = cl                 #FIX LAST EMPTY LINE
+        if len(cll) == 0: 
             if verbose: print("    WARNING - Skipping empty line")
             continue
             
-        #v = ll.split(sep)
-        v = re.split(sep, ll)
+        v = re.split(sep, cll)
         if len(v) != nsep:
             sstr = "Line <%d> have different number of separators. len(v): %d   nsep: %d\n"%(il, len(v), nsep)
             print(sstr)
-            assert False, ll
+            assert False
         
         if strip:
             for i in range(len(v)):
-                v[i] = v[i].strip()
+                v[i] = v[i]
         values.append(v)
         if verbose:
-            print("   Read line: %d"%ln)
-        ln = ln + 1
-    
+            print("   Read line: %d"%il)
+        
     return values, skipped
 
     
