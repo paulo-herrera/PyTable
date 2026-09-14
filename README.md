@@ -1,17 +1,11 @@
 # INTRODUCTION
 
-^PyTable is a small pure python library to work with tabular data stored as delimited 
-text files.
+*PyTable* is a small python library for working with data stored as delimited 
+text files, e.g. comma delimited files (.csv). The main purpose is making 
+the work with tabular data easy and even "enjoyable" (if that is possible).
 
-The main purpose of PyTable is to make working with tabular data easy and even "enjoyable" (if that is possible).
-
-It provides an interface for creating a table from lists of data and write it to and read it from text files. 
-In addition, it provides some methods for filtering columns and data, and 
-applying operations on data, e.g. mathematical operations on all elements 
-of a column, computing max and min values, etc.
-
-It is intended to be used to handle relatively small tables of up to a few MB (< 100 MB).
-However, it is likely that will work withouth significant issues with larger tables.
+It is intended to be used to handle relatively small tables of up to a few MB (<= 100 MB).
+However, it can work with larger files withouth significant issues.
 
 
 # EXAMPLE
@@ -37,15 +31,15 @@ However, it is likely that will work withouth significant issues with larger tab
 
 # GETTING STARTED
 
-**PyTable** is a small library to work with tabular data, i.e. data stored
-as columns in a text file. It includes methods to read/write tables, display (pretty print) tables,
-filter/search/remove data, easily plot columns against each other, generate new tables from columns, etc.
-
-It relies in only two main classes: Column (a simple wrapper around a Python list) and 
+*PyTable* is a small library for working with tabular data, i.e. data stored
+as columns in a text file. It includes methods to read/write and display (pretty print) tables,
+filter/search/remove data, easily plot columns against each other, generate new tables, etc.
+It includes two main classes: Column (a simple wrapper around a Python list) and 
 a Table (a wrapper around a list of Columns).
 
-A **Column** has a name, a type (int, float, string or date), a list that contains the data (called data),
-and a format that defines how data in the column must be pretty-printed.
+A **Column** has a name, a type (int, float, string or date), a list that 
+contains the data, and a format that defines how data in the column must 
+be pretty-printed.
 
 A **Table** has a name and a list of columns.
 
@@ -58,8 +52,8 @@ from tbl import Table
 # ALTERNATIVE 1
 t = Table.read(src=path-to-file, sep=",")  # sep can be any regex
 
-# After Table.read all columns are stored as strings, so they need to be 
-# converted to the proper type before use. For example, for a table that 
+# After calling Table.read, all columns are stored as strings, so they need 
+# to be converted to the proper type before use. For example, for a table that 
 # has 2 columns of integers and one column of strings
 t.convert(cols = [0,1,2], types=["i","i","s"])
 
@@ -77,7 +71,7 @@ t.add("pressure", [0.0, 1.5, 6.0, 11.0])
 t.add("ec", [0, 25, 70, 130])  
 
 
-# After the table has been created, it is a good idea to check what is stored on it
+# After the table has been created, it is a good idea to check what is stored in it
 t.what()  # prints a summary of the columns in the table
 t.wait()  # this line will stop the script and ask to press ENTER before continuing
 
@@ -93,12 +87,12 @@ t.wait()  # this line will stop the script and ask to press ENTER before continu
 #Col[0003]:                   ec 	   i< 	 00000004 
 #================================================================================
 
-# Alternatively, one may want to loop over columns and print their content indiviually
+# Alternatively, one may want to loop over columns and print their content
 for c in t: c.print()
 ```
 
-do something with the stored data, e.g. sort/filter/transform, and write the new table
-to a file.
+then, do something with the stored data, e.g. sort/filter/transform or write 
+the new table to a file.
 
 ```
 t.save(dst=path-to-file, sep=",")
@@ -119,16 +113,16 @@ c[1] = 1.2
 c[2] = 2.0
 c[3] = 2.4
 
-# After modifying values is useful to print the table. 
+# To add more elements to a column
+t[0].append(2.4)
+
+# After modifying values, it is useful to print the table. 
 # Formatting is controlled by calling t.setFormatStr() or by calling it on each Column
 # There are 3 ways to print rows in a table:
 t.head(10)    #prints first 10 rows, useful for long tables
 t.tail(10)    #prints last 10 rows
 t.print()     #prints full table to sys.stdout, check options in docs
 
-
-# Finally, to add more elements to a column
-t[0].append(2.4)
 ```
 
 A common need when working with long tables is searching for specific columns,
@@ -140,32 +134,38 @@ idxs = t.index(filter = lambda c, name: "Saturation" in name)
 # sometimes it is easier to create a new table that has only those columns
 t1 = t.select(filter = lambda c, name: "Saturation" in name)
 
-# Creating a table based on a filter that applies to values and column and row indexes,
-t1 = t.subtable(func = lambda r, c, e: r in [0,3])  # creates a new table with only the first and fourth row
+# Creating a table based on a filter that applies to (c)olumn,  (r)ow indexes and/or (v)alues,
+t1 = t.subtable(func = lambda r, c, v: r in [0,3])  # creates a new table with only the first and fourth row
 
-# similarly, to create a table that has only positive values (>= 0.0)
-t2 = t.subtable(func = lambda r, c, e: e >= 0.0)
+# similarly, to create a table with only elements that are greater than zero
+t2 = t.subtable(func = lambda r, c, v: v >= 0.0)
 
-# of course, for all calls is possible to not use the name of the argument, e.g. func
-```
-**Important** new tables DO NOT SHARE data with original table, so changes do not propagate to the original.
-
-There are many cases when it is necessary to locate data in the table, e.g. get all values greater than 100.0
-
-```
-values = t.collect(func = lambda r, c, e: e > 100.0)     # returns a standard list with values e > 100.0
+# of course, it is possible to not use the name of the argument for all calls, e.g. func,
+# so the script is self-documented and easier to read/understand
 ```
 
-There are other cases when one is interested in locating values, e.g. 
-which is the row and column for all values greater than 250.0?
+**Important** new tables DO NOT SHARE data with the original table, so changes 
+do not propagate to the original one.
+
+
+There are many cases when it is necessary to collect values in the table 
+that satisfy some criteria, e.g. get all values greater than 100.0
 
 ```
-values = t.collectrc(func = lambda r, c, e: e > 100.0)   # returns a standard list of tuples (r,c,e) for e > 250.0
+values = t.collect(func = lambda r, c, v: v > 100.0)     # returns a standard list with values v > 100.0
+```
+
+There are other cases when one is interested in locating the position in 
+the table for values that satisfy some criteria, e.g. which are the rows 
+and columns for values greater than 250.0?
+
+```
+values = t.collectrc(func = lambda r, c, v: v > 100.0)   # returns a standard list of tuples (r,c,v) for v > 250.0
 ```
 
 
-PyTable stores data in columns, so it has limited support to work with rows. However,
-it is possible to get the elements in a row or a few rows,
+*PyTable* stores data in columns, so it has limited support to work with rows. 
+However, it is possible to get the elements stored in a row or a few rows,
 
 ```
 r = t.row(1)        # returns a python list with elemens in second row
@@ -189,18 +189,18 @@ t[0].map(func = lambda r, c, e: e/ 86400.0)
 tday = t[0].apply(func = lambda r, c, e: e/ 86400.0) # apply returns a standard list that stores the results
 ```
 
-For the second task: To plot columns against each other, e.g. plot pressure and temperature versus time
+To plot columns against each other, e.g. temperature measured at two sensors 
+versus time
 
 ```
-plt = t.plotxy(xcols["time"], ycols["temperature", "pressure"], labels=["Time", "Temp/Pressure"])
+plt = t.plotxy(xcols["time"], ycols["Sensor1", "Sensor2"], labels=["Time", "Temperature [C]"])
+plt.show()   
+
 # plt is just a handle to matplotlib.pyplot. 
 # Check https://matplotlib.org/3.5.3/api/_as_gen/matplotlib.pyplot.html for details
-
-plt.legend()
-plt.show()   
 ```
 
-A handy way to plot all columns versus the first one (common task for the analysis of time series),
+A handy way to plot all columns versus the first one (common task for time series analysis),
 ```
 t.plotxy(xcols[0], ycols[-1])
 ```
@@ -219,8 +219,8 @@ t.plotxy(xcols[0], ycols[2], new=False)
 plt.show()
 ```
 
-Finally, PyTable provides some convenience methods to work with dates, e.g.
-to convert dates stored in a columns as strings "day/month/year" to a datetime object
+Finally, *PyTable* provides some convenience methods to work with dates, e.g.
+to convert dates stored in a column as strings "day/month/year" to a datetime object
 
 ```
 c = Column("dates").addData(["01/05/1977 00:00:00", "01/07/1977 00:15:20"]) 
@@ -237,25 +237,25 @@ te = c.telap(start = "01/01/1990", fmt_date = '%d/%m/%Y')
 
 # INSTALLATION
 
-The recommended way to use is to set the PYTHONPATH dynamically within the script,
-e.g. add these two lines to the beginning of the script
+The recommended way to use *PyTable* is setting the PYTHONPATH dynamically 
+within the script, e.g. add these two lines to the beginning of the script
 
 ```
 import sys
-sys.path.append('/home/paulo/Documents/Programming/pytable')
+sys.path.append('/home/user/Documents/Programming/pytable')
 ```
 
 Alternatively, the package can be installed in the default Python site-package:
-Go to the source directory and type: ```python setup.py install```
+go to the source directory and type ```python setup.py install```
 
 
 # DOCUMENTATION
 
-This file together with the included examples in the examples directory in the
+This file together with the examples directory in the
 source tree provide enough information to start using the package. 
 
-There is also reference documentation for all classes and methods in the package 
-in the docs folder distributed with the sources.
+The docs folder distributed with the source package contains reference 
+documentation for all classes and methods as standard html files.
 
 
 # REQUIREMENTS
@@ -266,41 +266,20 @@ in the docs folder distributed with the sources.
     - Numpy [OPTIONAL]
     
 
-# DEVELOPMENT
-
-## DESIGN GUIDELINES:
-
-The design of the package considered the following objectives:
-
-1. Self-contained. The package does not require any external library.
-
-2. Easy of use. It tries to make working with tabular data easy and flexible. It provides
-   default methods for simple operations, but it also implements methods that accept
-   functions as parameters (i.e. a functional interface), e.g. map, apply, etc. hence
-   it is also possible to implement additional operations with minimum effort.
-
-3. Performance was considered as part of the design, but it was not an objective. 
-   However, it is possible to work with tables that contain few hundred or even millions of 
-   elements and hundred of columns with ease. 
-
-
 ## CONTRIBUTE:
 
 I am open to incorporate bug fixes and additional improvements contributed by other
 developers. As a non-native English speaker, I would also appreciate proof reading of
-the this page and interesting examples to demonstrate the use of the PyTable.
+the this page and interesting examples to demonstrate the use of *PyTable*.
 
 
 # SUPPORT:
 
 I will continue releasing this package as open source, so it is free to be used 
 in any kind of project. I will also continue providing support for simple questions 
-and making incremental improvements as time allows. However, I also  provide 
-contract based support for commercial or research projects interested in this 
-package and/or I am open to discuss possible commercial licensing.
+and making incremental improvements as time allows.
 
 
-^ PyTable is a small library to work with relatively small data sets and should not be
-  confused with PyTables, which was developed to work with large data sets in distributed
-  environments. 
-  ** BOTH PROJECTS ARE NOT AFFILIATED. **
+  *PyTable* is a small library to work with relatively small data sets and 
+  should not be confused with **PyTables**, which was developed to work with 
+  large data sets in distributed environments. ** BOTH PROJECTS ARE NOT AFFILIATED. **
